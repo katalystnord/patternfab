@@ -14,7 +14,12 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets Svg)
 # and Phase 0 doesn't need the VTK-in-Qt-window embedding yet. Revisit when
 # Phase 5 (GUI) actually needs it — either drop to Qt5 or build VTK from
 # source with Qt6 support.
-find_package(VTK REQUIRED COMPONENTS CommonCore CommonDataModel RenderingCore)
+find_package(VTK REQUIRED COMPONENTS
+    CommonCore CommonDataModel RenderingCore
+    IOImage ImagingMorphological
+)
+
+find_package(nlohmann_json REQUIRED)
 
 find_library(DIME_LIBRARY NAMES dime)
 find_path(DIME_INCLUDE_DIR NAMES dime/Base.h)
