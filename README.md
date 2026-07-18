@@ -15,9 +15,10 @@ development path.
 
 ## Status
 
-Phase 1 complete — canonical pattern representation, plus vector (JSON)
-and raster (PNG/TIFF blob detection) input paths, tested. GUI is still an
-empty shell.
+Phase 2 complete — constraint engine (non-periodicity/tiling check,
+minimum-feature-size flagging, bleed compensation) on top of Phase 1's
+pattern representation and input paths, tested. GUI is still an empty
+shell.
 
 ## License
 

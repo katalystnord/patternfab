@@ -6,6 +6,8 @@ add_library(patternfab-core
     src/RasterInput.cpp
     include/patternfab/RasterInput.h
     include/patternfab/Pattern.h
+    src/ConstraintEngine.cpp
+    include/patternfab/ConstraintEngine.h
 )
 
 target_include_directories(patternfab-core PUBLIC
