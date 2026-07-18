@@ -15,7 +15,9 @@ development path.
 
 ## Status
 
-Phase 0 scaffolding complete — builds and runs (empty GUI shell).
+Phase 1 complete — canonical pattern representation, plus vector (JSON)
+and raster (PNG/TIFF blob detection) input paths, tested. GUI is still an
+empty shell.
 
 ## License
 
