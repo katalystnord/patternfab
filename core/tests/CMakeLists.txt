@@ -26,3 +26,9 @@ target_link_libraries(patternfab-core-tests-dxf PRIVATE
     patternfab-core
 )
 add_test(NAME patternfab-core-tests-dxf COMMAND patternfab-core-tests-dxf)
+
+add_executable(patternfab-core-tests-png test_png_export.cpp)
+target_link_libraries(patternfab-core-tests-png PRIVATE
+    patternfab-core
+)
+add_test(NAME patternfab-core-tests-png COMMAND patternfab-core-tests-png)

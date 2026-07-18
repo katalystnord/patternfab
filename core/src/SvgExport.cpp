@@ -1,7 +1,8 @@
 #include "patternfab/SvgExport.h"
 
+#include "PrimitiveDrawing.h"
+
 #include <QPainter>
-#include <QPainterPath>
 #include <QRectF>
 #include <QSvgGenerator>
 
@@ -43,26 +44,8 @@ void exportPatternToSvg(const Pattern &pattern, const std::string &path) {
     if (!painter.begin(&generator)) {
         throw std::runtime_error("exportPatternToSvg: failed to begin painting: " + path);
     }
-    painter.setPen(Qt::NoPen);
-    painter.setBrush(Qt::black);
-
-    for (const auto &primitive : pattern.primitives) {
-        if (primitive.shape == PrimitiveShape::Polygon) {
-            if (primitive.verticesMm.empty()) {
-                continue;
-            }
-            QPainterPath polygonPath;
-            polygonPath.moveTo(primitive.verticesMm[0].first, primitive.verticesMm[0].second);
-            for (std::size_t i = 1; i < primitive.verticesMm.size(); ++i) {
-                polygonPath.lineTo(primitive.verticesMm[i].first, primitive.verticesMm[i].second);
-            }
-            polygonPath.closeSubpath();
-            painter.drawPath(polygonPath);
-        } else {
-            painter.drawEllipse(QPointF(primitive.centerXMm, primitive.centerYMm), primitive.radiusXMm,
-                                 primitive.radiusYMm);
-        }
-    }
+    // No scale needed: viewBox is already set to exact mm extents above.
+    detail::drawPrimitivesMm(painter, pattern.primitives);
     painter.end();
 }
 

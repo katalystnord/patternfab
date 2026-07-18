@@ -12,6 +12,10 @@ add_library(patternfab-core
     include/patternfab/SvgExport.h
     src/DxfExport.cpp
     include/patternfab/DxfExport.h
+    src/PngExport.cpp
+    include/patternfab/PngExport.h
+    src/PrimitiveDrawing.cpp
+    src/PrimitiveDrawing.h
 )
 
 target_include_directories(patternfab-core PUBLIC
