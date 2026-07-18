@@ -1,0 +1,17 @@
+add_executable(patternfab-gui
+    src/main.cpp
+    src/MainWindow.cpp
+    src/MainWindow.h
+)
+
+target_link_libraries(patternfab-gui PRIVATE
+    patternfab-core
+    Qt6::Widgets
+    Qt6::Svg
+    ${VTK_LIBRARIES}
+)
+
+vtk_module_autoinit(
+    TARGETS patternfab-gui
+    MODULES ${VTK_LIBRARIES}
+)
