@@ -8,7 +8,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Svg)
+find_package(Qt6 REQUIRED COMPONENTS Gui Widgets Svg)
 # GUISupportQt deliberately excluded for now: Ubuntu's packaged VTK 9.1
 # GUISupportQt module is linked against Qt5, not Qt6 (verified via ldd),
 # and Phase 0 doesn't need the VTK-in-Qt-window embedding yet. Revisit when

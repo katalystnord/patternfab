@@ -8,6 +8,10 @@ add_library(patternfab-core
     include/patternfab/Pattern.h
     src/ConstraintEngine.cpp
     include/patternfab/ConstraintEngine.h
+    src/SvgExport.cpp
+    include/patternfab/SvgExport.h
+    src/DxfExport.cpp
+    include/patternfab/DxfExport.h
 )
 
 target_include_directories(patternfab-core PUBLIC
@@ -18,6 +22,14 @@ target_link_libraries(patternfab-core PUBLIC
     ${VTK_LIBRARIES}
     dime::dime
     nlohmann_json::nlohmann_json
+    # Qt6::Gui (QPainter) + Qt6::Svg (QSvgGenerator) only -- NOT Qt6::Widgets.
+    # Verified these run standalone with no QApplication/QGuiApplication
+    # instance and no display (QT_QPA_PLATFORM=offscreen or unset both
+    # tested). Keeps the "headless, unit-testable directly" property from
+    # CLAUDE.md's Development path: that principle is about not depending on
+    # interactive widgets, not about zero Qt linkage.
+    Qt6::Gui
+    Qt6::Svg
 )
 
 vtk_module_autoinit(

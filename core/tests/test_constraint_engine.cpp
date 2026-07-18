@@ -103,12 +103,44 @@ void testBleedCompensation() {
     check(didNotThrow, "polygon + zero compensation is a no-op, does not throw");
 }
 
+void testStencilBridging() {
+    patternfab::Pattern pattern;
+    pattern.primitives.push_back(makeCircle(0.0, 0.0, 1.0));
+    pattern.primitives.push_back(makeCircle(2.1, 0.0, 1.0)); // gap = 0.1mm
+    pattern.primitives.push_back(makeCircle(10.0, 10.0, 1.0)); // far away, gap large
+
+    patternfab::ManufacturingConstraints constraints;
+    constraints.minBridgeWidthMm = 0.2;
+
+    const auto violations = patternfab::checkStencilBridging(pattern, constraints);
+    check(violations.size() == 1, "exactly one bridging violation");
+    if (!violations.empty()) {
+        check(violations[0].primitiveIndexA == 0 && violations[0].primitiveIndexB == 1,
+              "violation flags primitives 0 and 1");
+        check(std::abs(violations[0].gapMm - 0.1) < 1e-9, "gap computed correctly");
+    }
+
+    constraints.minBridgeWidthMm = 0.0;
+    check(patternfab::checkStencilBridging(pattern, constraints).empty(), "zero threshold disables check");
+
+    // Overlapping primitives (negative gap) must also be flagged.
+    patternfab::Pattern overlapping;
+    overlapping.primitives.push_back(makeCircle(0.0, 0.0, 1.0));
+    overlapping.primitives.push_back(makeCircle(0.5, 0.0, 1.0));
+    patternfab::ManufacturingConstraints tightConstraints;
+    tightConstraints.minBridgeWidthMm = 0.1;
+    const auto overlapViolations = patternfab::checkStencilBridging(overlapping, tightConstraints);
+    check(overlapViolations.size() == 1 && overlapViolations[0].gapMm < 0.0,
+          "overlapping primitives flagged with negative gap");
+}
+
 } // namespace
 
 int main() {
     testBoundingBoxAndTiling();
     testMinimumFeatureSize();
     testBleedCompensation();
+    testStencilBridging();
 
     if (failures == 0) {
         std::cout << "OK: all patternfab-core constraint engine tests passed" << std::endl;

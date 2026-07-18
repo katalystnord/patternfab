@@ -14,3 +14,15 @@ target_link_libraries(patternfab-core-tests-constraints PRIVATE
     patternfab-core
 )
 add_test(NAME patternfab-core-tests-constraints COMMAND patternfab-core-tests-constraints)
+
+add_executable(patternfab-core-tests-svg test_svg_export.cpp)
+target_link_libraries(patternfab-core-tests-svg PRIVATE
+    patternfab-core
+)
+add_test(NAME patternfab-core-tests-svg COMMAND patternfab-core-tests-svg)
+
+add_executable(patternfab-core-tests-dxf test_dxf_export.cpp)
+target_link_libraries(patternfab-core-tests-dxf PRIVATE
+    patternfab-core
+)
+add_test(NAME patternfab-core-tests-dxf COMMAND patternfab-core-tests-dxf)

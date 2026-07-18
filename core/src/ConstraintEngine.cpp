@@ -1,6 +1,7 @@
 #include "patternfab/ConstraintEngine.h"
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <stdexcept>
 
@@ -39,6 +40,44 @@ double featureSizeMm(const Primitive &primitive) {
         return std::min(maxX - minX, maxY - minY);
     }
     return 2.0 * std::min(primitive.radiusXMm, primitive.radiusYMm);
+}
+
+// Centroid for polygon, center point otherwise -- the reference point used
+// for gap-distance and direction calculations in checkStencilBridging.
+std::pair<double, double> effectiveCenter(const Primitive &primitive) {
+    if (primitive.shape == PrimitiveShape::Polygon) {
+        double cx = 0.0;
+        double cy = 0.0;
+        for (const auto &[x, y] : primitive.verticesMm) {
+            cx += x;
+            cy += y;
+        }
+        const double n = static_cast<double>(primitive.verticesMm.size());
+        return {cx / n, cy / n};
+    }
+    return {primitive.centerXMm, primitive.centerYMm};
+}
+
+// Effective radius of primitive in the direction (dirX, dirY) (a unit
+// vector, pointing away from the primitive's effective center). See
+// ConstraintEngine.h for the per-shape approximation rationale.
+double effectiveRadiusToward(const Primitive &primitive, double dirX, double dirY) {
+    if (primitive.shape == PrimitiveShape::Polygon) {
+        const auto [cx, cy] = effectiveCenter(primitive);
+        double maxDist = 0.0;
+        for (const auto &[x, y] : primitive.verticesMm) {
+            maxDist = std::max(maxDist, std::hypot(x - cx, y - cy));
+        }
+        return maxDist;
+    }
+    if (primitive.radiusXMm == primitive.radiusYMm) {
+        return primitive.radiusXMm;
+    }
+    // Axis-aligned ellipse polar radius formula.
+    const double rx = primitive.radiusXMm;
+    const double ry = primitive.radiusYMm;
+    const double denom = std::hypot(ry * dirX, rx * dirY);
+    return (rx * ry) / denom;
 }
 
 } // namespace
@@ -106,10 +145,51 @@ Pattern applyBleedCompensation(const Pattern &pattern, const ManufacturingConstr
     return result;
 }
 
+std::vector<BridgingViolation> checkStencilBridging(const Pattern &pattern,
+                                                     const ManufacturingConstraints &constraints) {
+    std::vector<BridgingViolation> violations;
+    if (constraints.minBridgeWidthMm <= 0.0) {
+        return violations;
+    }
+
+    const auto &primitives = pattern.primitives;
+    for (std::size_t i = 0; i < primitives.size(); ++i) {
+        const auto [cxi, cyi] = effectiveCenter(primitives[i]);
+        for (std::size_t j = i + 1; j < primitives.size(); ++j) {
+            const auto [cxj, cyj] = effectiveCenter(primitives[j]);
+            const double dx = cxj - cxi;
+            const double dy = cyj - cyi;
+            const double centerDist = std::hypot(dx, dy);
+
+            double gap;
+            if (centerDist < 1e-12) {
+                // Coincident centers: treat as fully overlapping.
+                gap = -std::max(effectiveRadiusToward(primitives[i], 1.0, 0.0),
+                                 effectiveRadiusToward(primitives[j], 1.0, 0.0));
+            } else {
+                const double ux = dx / centerDist;
+                const double uy = dy / centerDist;
+                const double ri = effectiveRadiusToward(primitives[i], ux, uy);
+                const double rj = effectiveRadiusToward(primitives[j], -ux, -uy);
+                gap = centerDist - ri - rj;
+            }
+
+            if (gap < constraints.minBridgeWidthMm) {
+                violations.push_back({i, j, gap,
+                                       "gap " + std::to_string(gap) + "mm between primitives " + std::to_string(i) +
+                                           " and " + std::to_string(j) + " is below minimum bridge width " +
+                                           std::to_string(constraints.minBridgeWidthMm) + "mm"});
+            }
+        }
+    }
+    return violations;
+}
+
 ConstraintReport evaluateConstraints(const Pattern &pattern, const ManufacturingConstraints &constraints) {
     ConstraintReport report;
     report.patternRequiresTiling = patternRequiresTiling(pattern);
     report.minimumFeatureSizeViolations = checkMinimumFeatureSize(pattern, constraints);
+    report.bridgingViolations = checkStencilBridging(pattern, constraints);
     return report;
 }
 
