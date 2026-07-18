@@ -15,7 +15,7 @@ development path.
 
 ## Status
 
-Early scaffolding — no working build yet.
+Phase 0 scaffolding complete — builds and runs (empty GUI shell).
 
 ## License
 
