@@ -32,3 +32,14 @@ target_link_libraries(patternfab-core-tests-png PRIVATE
     patternfab-core
 )
 add_test(NAME patternfab-core-tests-png COMMAND patternfab-core-tests-png)
+
+add_executable(patternfab-core-tests-stl test_stl_export.cpp)
+target_link_libraries(patternfab-core-tests-stl PRIVATE
+    patternfab-core
+    ${VTK_LIBRARIES}
+)
+vtk_module_autoinit(
+    TARGETS patternfab-core-tests-stl
+    MODULES ${VTK_LIBRARIES}
+)
+add_test(NAME patternfab-core-tests-stl COMMAND patternfab-core-tests-stl)

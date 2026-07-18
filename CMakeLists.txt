@@ -17,6 +17,7 @@ find_package(Qt6 REQUIRED COMPONENTS Gui Widgets Svg)
 find_package(VTK REQUIRED COMPONENTS
     CommonCore CommonDataModel RenderingCore
     IOImage ImagingMorphological
+    FiltersModeling IOGeometry
 )
 
 find_package(nlohmann_json REQUIRED)

@@ -16,6 +16,8 @@ add_library(patternfab-core
     include/patternfab/PngExport.h
     src/PrimitiveDrawing.cpp
     src/PrimitiveDrawing.h
+    src/StlExport.cpp
+    include/patternfab/StlExport.h
 )
 
 target_include_directories(patternfab-core PUBLIC

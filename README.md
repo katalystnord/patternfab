@@ -15,9 +15,9 @@ development path.
 
 ## Status
 
-Phase 3.1 complete — SVG and DXF export pipelines, plus a stencil-bridging
-(adjacent-hole gap) constraint check, tested. PNG and STL/relief export
-still to come. GUI is still an empty shell.
+Phase 3 complete — SVG, DXF, PNG, and STL/relief export pipelines, plus
+the stencil-bridging (adjacent-hole gap) constraint check, all tested.
+GUI is still an empty shell.
 
 ## License
 
