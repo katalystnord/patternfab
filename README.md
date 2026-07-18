@@ -15,9 +15,11 @@ development path.
 
 ## Status
 
-Phase 3 complete — SVG, DXF, PNG, and STL/relief export pipelines, plus
-the stencil-bridging (adjacent-hole gap) constraint check, all tested.
-GUI is still an empty shell.
+Phase 4 complete — sensor-physics uncertainty: a design-time per-pixel
+DIC correlation confidence prediction combining local intensity gradient
+with a real camera sensor noise model, on top of Phase 3's export
+pipelines. All core functionality now built and tested; GUI (Phase 5)
+is still an empty shell.
 
 ## License
 

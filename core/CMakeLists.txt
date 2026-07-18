@@ -18,6 +18,8 @@ add_library(patternfab-core
     src/PrimitiveDrawing.h
     src/StlExport.cpp
     include/patternfab/StlExport.h
+    src/UncertaintyEngine.cpp
+    include/patternfab/UncertaintyEngine.h
 )
 
 target_include_directories(patternfab-core PUBLIC

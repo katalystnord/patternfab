@@ -43,3 +43,9 @@ vtk_module_autoinit(
     MODULES ${VTK_LIBRARIES}
 )
 add_test(NAME patternfab-core-tests-stl COMMAND patternfab-core-tests-stl)
+
+add_executable(patternfab-core-tests-uncertainty test_uncertainty_engine.cpp)
+target_link_libraries(patternfab-core-tests-uncertainty PRIVATE
+    patternfab-core
+)
+add_test(NAME patternfab-core-tests-uncertainty COMMAND patternfab-core-tests-uncertainty)
