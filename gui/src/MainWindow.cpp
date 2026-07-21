@@ -64,7 +64,15 @@ void MainWindow::buildUi() {
     auto *controls = new QWidget;
     auto *col = new QVBoxLayout(controls);
     col->setContentsMargins(12, 12, 12, 12);
-    col->setSpacing(12);
+    col->setSpacing(8);
+
+    // Keep the control stack compact so all export actions sit above the fold
+    // rather than behind a scrollbar.
+    const auto tighten = [](QFormLayout *form) {
+        form->setContentsMargins(10, 8, 10, 8);
+        form->setVerticalSpacing(6);
+        form->setHorizontalSpacing(10);
+    };
 
     auto *openButton = new QPushButton(tr("Open pattern…"));
     connect(openButton, &QPushButton::clicked, this, &MainWindow::openPattern);
@@ -73,6 +81,7 @@ void MainWindow::buildUi() {
     // Loaded pattern summary.
     auto *patternBox = new QGroupBox(tr("Pattern"));
     auto *patternForm = new QFormLayout(patternBox);
+    tighten(patternForm);
     fileLabel_ = new QLabel(tr("(none loaded)"));
     fileLabel_->setWordWrap(true);
     specimenLabel_ = new QLabel("—");
@@ -89,6 +98,7 @@ void MainWindow::buildUi() {
     // Manufacturing constraints (drive the report and export bleed comp).
     auto *constraintBox = new QGroupBox(tr("Manufacturing constraints"));
     auto *constraintForm = new QFormLayout(constraintBox);
+    tighten(constraintForm);
     minFeatureSpin_ = makeSpin(0.0, 10.0, 0.01, 3, 0.15, tr(" mm"));
     bleedSpin_ = makeSpin(0.0, 5.0, 0.01, 3, 0.03, tr(" mm"));
     bridgeSpin_ = makeSpin(0.0, 10.0, 0.01, 3, 0.20, tr(" mm"));
@@ -108,8 +118,8 @@ void MainWindow::buildUi() {
     // Cap the height so the empty report doesn't devour vertical space and
     // push the export actions below the fold; it scrolls internally if the
     // violation list runs long.
-    reportView_->setMinimumHeight(96);
-    reportView_->setMaximumHeight(200);
+    reportView_->setMinimumHeight(84);
+    reportView_->setMaximumHeight(124);
     reportLayout->addWidget(reportView_);
     col->addWidget(reportBox);
 
@@ -135,10 +145,14 @@ void MainWindow::buildUi() {
     stlButton_ = new QPushButton(tr("Export STL… (stamp/mold)"));
     connect(stlButton_, &QPushButton::clicked, this, &MainWindow::exportStl);
     exportLayout->addWidget(stlButton_);
-    auto *reliefForm = new QFormLayout;
     baseThicknessSpin_ = makeSpin(0.1, 50.0, 0.1, 2, 2.0, tr(" mm"));
+    baseThicknessSpin_->setToolTip(tr("Relief base-plate thickness"));
     bumpHeightSpin_ = makeSpin(0.05, 20.0, 0.05, 2, 0.8, tr(" mm"));
+    bumpHeightSpin_->setToolTip(tr("Raised bump height at each speckle"));
     meshResSpin_ = makeSpin(1.0, 50.0, 1.0, 1, 8.0, tr(" /mm"));
+    meshResSpin_->setToolTip(tr("Heightfield mesh resolution (samples per mm)"));
+    auto *reliefForm = new QFormLayout;
+    tighten(reliefForm);
     reliefForm->addRow(tr("Base thickness:"), baseThicknessSpin_);
     reliefForm->addRow(tr("Bump height:"), bumpHeightSpin_);
     reliefForm->addRow(tr("Mesh resolution:"), meshResSpin_);
@@ -152,6 +166,10 @@ void MainWindow::buildUi() {
     scroll->setWidgetResizable(true);
     scroll->setMinimumWidth(380);
     scroll->setMaximumWidth(460);
+    // The control column may scroll vertically on a short window (a visible,
+    // expected affordance); it must never scroll horizontally (sideways-hidden
+    // content is easy to miss entirely).
+    scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     // --- Right preview -----------------------------------------------
     preview_ = new PreviewWidget;
