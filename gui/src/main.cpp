@@ -1,8 +1,15 @@
 #include "MainWindow.h"
 
+#include <QVTKOpenGLNativeWidget.h>
+
 #include <QApplication>
+#include <QSurfaceFormat>
 
 int main(int argc, char *argv[]) {
+    // Required before any QVTKOpenGLNativeWidget is constructed: it fixes the
+    // OpenGL context format the embedded VTK render window shares.
+    QSurfaceFormat::setDefaultFormat(QVTKOpenGLNativeWidget::defaultFormat());
+
     QApplication app(argc, argv);
 
     MainWindow window;

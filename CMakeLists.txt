@@ -8,16 +8,18 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Gui Widgets Svg)
-# GUISupportQt deliberately excluded for now: Ubuntu's packaged VTK 9.1
-# GUISupportQt module is linked against Qt5, not Qt6 (verified via ldd),
-# and Phase 0 doesn't need the VTK-in-Qt-window embedding yet. Revisit when
-# Phase 5 (GUI) actually needs it — either drop to Qt5 or build VTK from
-# source with Qt6 support.
+# OpenGLWidgets: QVTKOpenGLNativeWidget derives from QOpenGLWidget, which lives
+# in this Qt6 module.
+find_package(Qt6 REQUIRED COMPONENTS Gui Widgets Svg OpenGLWidgets)
+# GUISupportQt + RenderingOpenGL2 drive the in-window VTK 3D relief preview
+# (Phase 5.2). This was excluded through Phase 0-5.1 because Ubuntu's VTK 9.1
+# built GUISupportQt against Qt5; on 26.04's VTK 9.5 it is built against Qt6,
+# so the embedding path is now available.
 find_package(VTK REQUIRED COMPONENTS
-    CommonCore CommonDataModel RenderingCore
+    CommonCore CommonDataModel RenderingCore RenderingOpenGL2
     IOImage ImagingMorphological
     FiltersModeling IOGeometry
+    GUISupportQt
 )
 
 find_package(nlohmann_json REQUIRED)

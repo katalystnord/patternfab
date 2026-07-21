@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 
 #include "PreviewWidget.h"
+#include "ReliefPreviewWidget.h"
 
 #include <patternfab/ConstraintEngine.h>
 #include <patternfab/Core.h>
@@ -24,6 +25,7 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QStatusBar>
+#include <QTabWidget>
 #include <QVBoxLayout>
 
 #include <exception>
@@ -48,6 +50,7 @@ QDoubleSpinBox *makeSpin(double min, double max, double step, int decimals, doub
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     setWindowTitle(QString("PatternFab %1").arg(QString::fromStdString(patternfab::coreVersion())));
     previewSvgPath_ = QDir(QDir::tempPath()).filePath("patternfab_preview.svg");
+    previewStlPath_ = QDir(QDir::tempPath()).filePath("patternfab_preview.stl");
     buildUi();
     setExportsEnabled(false);
     resize(1120, 740);
@@ -171,14 +174,30 @@ void MainWindow::buildUi() {
     // content is easy to miss entirely).
     scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-    // --- Right preview -----------------------------------------------
+    // --- Right preview (tabbed 2D / 3D) ------------------------------
     preview_ = new PreviewWidget;
+    relief3d_ = new ReliefPreviewWidget;
+    previewTabs_ = new QTabWidget;
+    previewTabs_->addTab(preview_, tr("2D (stencil / direct-write)"));
+    previewTabs_->addTab(relief3d_, tr("3D relief (stamp / mold)"));
+    connect(previewTabs_, &QTabWidget::currentChanged, this, &MainWindow::onPreviewTabChanged);
+
+    // The relief preview depends on the STL relief parameters; rebuild it when
+    // they change, but only while its tab is visible.
+    for (auto *spin : {baseThicknessSpin_, bumpHeightSpin_, meshResSpin_}) {
+        connect(spin, &QDoubleSpinBox::valueChanged, this, [this]() {
+            relief3dDirty_ = true;
+            if (previewTabs_->currentWidget() == relief3d_) {
+                refreshReliefPreview();
+            }
+        });
+    }
 
     auto *central = new QWidget;
     auto *root = new QHBoxLayout(central);
     root->setContentsMargins(0, 0, 0, 0);
     root->addWidget(scroll);
-    root->addWidget(preview_, 1);
+    root->addWidget(previewTabs_, 1);
     setCentralWidget(central);
 
     statusBar()->showMessage(tr("Open a PatternFab pattern to begin."));
@@ -261,6 +280,7 @@ void MainWindow::refreshReport() {
 void MainWindow::refreshPreview() {
     if (!pattern_) {
         preview_->clear();
+        relief3d_->clear();
         return;
     }
     // Preview the raw design geometry (bleed compensation is a sub-visible
@@ -272,6 +292,42 @@ void MainWindow::refreshPreview() {
         preview_->clear();
         statusBar()->showMessage(tr("Preview failed: %1").arg(QString::fromUtf8(e.what())), 5000);
     }
+
+    // The 3D relief is comparatively expensive to mesh; rebuild it now only if
+    // its tab is showing, otherwise defer until the user switches to it.
+    relief3dDirty_ = true;
+    if (previewTabs_->currentWidget() == relief3d_) {
+        refreshReliefPreview();
+    }
+}
+
+void MainWindow::refreshReliefPreview() {
+    if (!pattern_) {
+        relief3d_->clear();
+        return;
+    }
+    try {
+        patternfab::exportPatternToStl(*pattern_, previewStlPath_.toStdString(), currentRelief());
+        relief3d_->showStl(previewStlPath_);
+        relief3dDirty_ = false;
+    } catch (const std::exception &e) {
+        relief3d_->clear();
+        statusBar()->showMessage(tr("3D preview failed: %1").arg(QString::fromUtf8(e.what())), 5000);
+    }
+}
+
+void MainWindow::onPreviewTabChanged() {
+    if (pattern_ && relief3dDirty_ && previewTabs_->currentWidget() == relief3d_) {
+        refreshReliefPreview();
+    }
+}
+
+patternfab::ReliefParameters MainWindow::currentRelief() const {
+    patternfab::ReliefParameters relief;
+    relief.baseThicknessMm = baseThicknessSpin_->value();
+    relief.bumpHeightMm = bumpHeightSpin_->value();
+    relief.meshResolutionPerMm = meshResSpin_->value();
+    return relief;
 }
 
 patternfab::Pattern MainWindow::fabricationGeometry() const {
@@ -322,10 +378,7 @@ void MainWindow::exportPng() {
 }
 
 void MainWindow::exportStl() {
-    patternfab::ReliefParameters relief;
-    relief.baseThicknessMm = baseThicknessSpin_->value();
-    relief.bumpHeightMm = bumpHeightSpin_->value();
-    relief.meshResolutionPerMm = meshResSpin_->value();
+    const patternfab::ReliefParameters relief = currentRelief();
     runExport(tr("Export STL"), tr("STL (*.stl)"), ".stl",
               [relief](const patternfab::Pattern &p, const std::string &path) {
                   patternfab::exportPatternToStl(p, path, relief);

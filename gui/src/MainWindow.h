@@ -2,6 +2,7 @@
 
 #include <patternfab/ConstraintEngine.h>
 #include <patternfab/Pattern.h>
+#include <patternfab/StlExport.h>
 
 #include <QMainWindow>
 
@@ -10,10 +11,12 @@
 #include <string>
 
 class PreviewWidget;
+class ReliefPreviewWidget;
 class QDoubleSpinBox;
 class QLabel;
 class QPlainTextEdit;
 class QPushButton;
+class QTabWidget;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -34,11 +37,18 @@ private:
     // the current manufacturing constraints. Called on load and whenever a
     // constraint spin box changes.
     void refreshReport();
-    // Regenerate the preview SVG (raw design geometry) and hand it to the view.
+    // Regenerate the 2D preview SVG (raw design geometry) and hand it to the
+    // view; marks the 3D relief preview stale (rebuilt lazily when shown).
     void refreshPreview();
+    // Rebuild the 3D relief preview STL from the current relief parameters.
+    // Meshing is non-trivial, so this runs only when the 3D tab is actually
+    // visible (or on demand), guarded by relief3dDirty_.
+    void refreshReliefPreview();
+    void onPreviewTabChanged();
     void setExportsEnabled(bool enabled);
 
     patternfab::ManufacturingConstraints currentConstraints() const;
+    patternfab::ReliefParameters currentRelief() const;
     // Bleed-compensated fabrication geometry for export. May throw (e.g. a
     // polygon under nonzero bleed, which core refuses rather than approximate).
     patternfab::Pattern fabricationGeometry() const;
@@ -50,8 +60,12 @@ private:
 
     std::optional<patternfab::Pattern> pattern_;
     QString previewSvgPath_;
+    QString previewStlPath_;
+    bool relief3dDirty_ = true;
 
+    QTabWidget *previewTabs_ = nullptr;
     PreviewWidget *preview_ = nullptr;
+    ReliefPreviewWidget *relief3d_ = nullptr;
 
     QLabel *fileLabel_ = nullptr;
     QLabel *specimenLabel_ = nullptr;
