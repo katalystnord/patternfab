@@ -49,3 +49,17 @@ target_link_libraries(patternfab-core-tests-uncertainty PRIVATE
     patternfab-core
 )
 add_test(NAME patternfab-core-tests-uncertainty COMMAND patternfab-core-tests-uncertainty)
+
+add_executable(patternfab-core-tests-pipeline test_pipeline_integration.cpp)
+target_link_libraries(patternfab-core-tests-pipeline PRIVATE
+    patternfab-core
+    ${VTK_LIBRARIES}
+)
+target_compile_definitions(patternfab-core-tests-pipeline PRIVATE
+    PATTERNFAB_SAMPLE_PATTERN="${CMAKE_SOURCE_DIR}/examples/sample_pattern.json"
+)
+vtk_module_autoinit(
+    TARGETS patternfab-core-tests-pipeline
+    MODULES ${VTK_LIBRARIES}
+)
+add_test(NAME patternfab-core-tests-pipeline COMMAND patternfab-core-tests-pipeline)

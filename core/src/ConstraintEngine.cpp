@@ -102,8 +102,19 @@ bool patternRequiresTiling(const Pattern &pattern) {
     const BoundingBox bbox = computeBoundingBox(pattern);
     const double width = bbox.maxXMm - bbox.minXMm;
     const double height = bbox.maxYMm - bbox.minYMm;
-    return width < pattern.params.specimenWidthMm - kExtentEpsilonMm ||
-           height < pattern.params.specimenHeightMm - kExtentEpsilonMm;
+    // A real speckle field is discrete dots, so its bounding box is always
+    // inset from the specimen edge by up to the speckle spacing -- there can
+    // be no ink beyond the outermost dot. Requiring the extent to reach the
+    // specimen edge to within a float epsilon therefore false-positives on
+    // every physically-applied field, firing the periodicity warning on
+    // patterns that in fact cover the specimen in a single application. Use a
+    // physical margin instead: the field only genuinely needs tiling if it
+    // leaves an uncovered strip wider than one target speckle on either axis.
+    // Fall back to the float epsilon when targetSpeckleSizeMm is unset (0), so
+    // a degenerate pattern still isn't flagged on floating-point noise alone.
+    const double margin = std::max(pattern.params.targetSpeckleSizeMm, kExtentEpsilonMm);
+    return width < pattern.params.specimenWidthMm - margin ||
+           height < pattern.params.specimenHeightMm - margin;
 }
 
 std::vector<ConstraintViolation> checkMinimumFeatureSize(const Pattern &pattern,

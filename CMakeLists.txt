@@ -34,4 +34,5 @@ set_target_properties(dime::dime PROPERTIES
 )
 
 add_subdirectory(core)
+add_subdirectory(cli)
 add_subdirectory(gui)

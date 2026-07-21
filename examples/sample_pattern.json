@@ -1,0 +1,1060 @@
+{
+  "physicalParameters": {
+    "specimenWidthMm": 30.0,
+    "specimenHeightMm": 20.0,
+    "imagingResolutionPxPerMm": 40.0,
+    "targetSpeckleSizeMm": 0.5
+  },
+  "primitives": [
+    {
+      "shape": "circle",
+      "centerXMm": 18.3147,
+      "centerYMm": 19.1684,
+      "radiusMm": 0.2406
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 21.032,
+      "centerYMm": 19.2889,
+      "radiusMm": 0.2786
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 22.3298,
+      "centerYMm": 18.2083,
+      "radiusMm": 0.2733
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 19.1263,
+      "centerYMm": 17.2473,
+      "radiusMm": 0.2373
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 16.64,
+      "centerYMm": 17.9807,
+      "radiusMm": 0.2265
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 17.4857,
+      "centerYMm": 16.2916,
+      "radiusMm": 0.2268
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 21.0084,
+      "centerYMm": 16.2635,
+      "radiusMm": 0.2705
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 15.1094,
+      "centerYMm": 18.6332,
+      "radiusMm": 0.2674
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 23.7149,
+      "centerYMm": 18.8802,
+      "radiusMm": 0.2804
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 23.7421,
+      "centerYMm": 16.5652,
+      "radiusMm": 0.2416
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 12.4585,
+      "centerYMm": 17.876,
+      "radiusMm": 0.243
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 11.6971,
+      "centerYMm": 15.2316,
+      "radiusMm": 0.2517
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 15.7225,
+      "centerYMm": 16.7885,
+      "radiusMm": 0.2595
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 25.2786,
+      "centerYMm": 18.0252,
+      "radiusMm": 0.2274
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 17.143,
+      "centerYMm": 14.1894,
+      "radiusMm": 0.2458
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 26.7321,
+      "centerYMm": 15.5082,
+      "radiusMm": 0.2617
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 25.2621,
+      "centerYMm": 19.6384,
+      "radiusMm": 0.2691
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 27.1834,
+      "centerYMm": 17.0797,
+      "radiusMm": 0.2799
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 24.6545,
+      "centerYMm": 15.2156,
+      "radiusMm": 0.2654
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 27.3788,
+      "centerYMm": 19.3494,
+      "radiusMm": 0.2624
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 28.7282,
+      "centerYMm": 16.1797,
+      "radiusMm": 0.2838
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 22.5023,
+      "centerYMm": 13.9649,
+      "radiusMm": 0.2504
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 20.7984,
+      "centerYMm": 12.2351,
+      "radiusMm": 0.2492
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 20.5259,
+      "centerYMm": 17.8511,
+      "radiusMm": 0.261
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 18.6688,
+      "centerYMm": 14.0517,
+      "radiusMm": 0.2369
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 20.9072,
+      "centerYMm": 14.579,
+      "radiusMm": 0.2752
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 17.1005,
+      "centerYMm": 11.6422,
+      "radiusMm": 0.2484
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 24.0189,
+      "centerYMm": 13.443,
+      "radiusMm": 0.2183
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 18.7015,
+      "centerYMm": 11.6788,
+      "radiusMm": 0.2473
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 10.5545,
+      "centerYMm": 13.3894,
+      "radiusMm": 0.2353
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 19.6109,
+      "centerYMm": 15.6259,
+      "radiusMm": 0.2639
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 15.5111,
+      "centerYMm": 15.2898,
+      "radiusMm": 0.2209
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 29.7288,
+      "centerYMm": 18.5244,
+      "radiusMm": 0.2146
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 13.6272,
+      "centerYMm": 16.6887,
+      "radiusMm": 0.2341
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 22.4545,
+      "centerYMm": 11.4275,
+      "radiusMm": 0.2692
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 25.8649,
+      "centerYMm": 13.7983,
+      "radiusMm": 0.2433
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 12.7392,
+      "centerYMm": 19.5559,
+      "radiusMm": 0.2693
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 10.3892,
+      "centerYMm": 16.3041,
+      "radiusMm": 0.242
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 24.2303,
+      "centerYMm": 11.8949,
+      "radiusMm": 0.2204
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 8.9056,
+      "centerYMm": 14.4428,
+      "radiusMm": 0.286
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 8.4601,
+      "centerYMm": 16.5963,
+      "radiusMm": 0.2501
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 22.4162,
+      "centerYMm": 15.6165,
+      "radiusMm": 0.2232
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 25.334,
+      "centerYMm": 9.8591,
+      "radiusMm": 0.2301
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 13.8704,
+      "centerYMm": 14.3092,
+      "radiusMm": 0.2432
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 15.4386,
+      "centerYMm": 12.8861,
+      "radiusMm": 0.2687
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 27.1536,
+      "centerYMm": 10.8006,
+      "radiusMm": 0.2244
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 5.5167,
+      "centerYMm": 16.1691,
+      "radiusMm": 0.2304
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 29.0012,
+      "centerYMm": 8.4548,
+      "radiusMm": 0.2364
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 10.1091,
+      "centerYMm": 17.9967,
+      "radiusMm": 0.2495
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 12.6545,
+      "centerYMm": 12.9898,
+      "radiusMm": 0.2132
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 27.5333,
+      "centerYMm": 13.0393,
+      "radiusMm": 0.2153
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 23.9244,
+      "centerYMm": 8.1335,
+      "radiusMm": 0.2473
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 28.7278,
+      "centerYMm": 14.4963,
+      "radiusMm": 0.2269
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 28.8944,
+      "centerYMm": 6.8854,
+      "radiusMm": 0.242
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 29.6267,
+      "centerYMm": 10.4159,
+      "radiusMm": 0.2332
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 7.3959,
+      "centerYMm": 18.0233,
+      "radiusMm": 0.2166
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 27.063,
+      "centerYMm": 7.7424,
+      "radiusMm": 0.219
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 22.2919,
+      "centerYMm": 9.1921,
+      "radiusMm": 0.2552
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 29.5373,
+      "centerYMm": 11.973,
+      "radiusMm": 0.2297
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 20.3953,
+      "centerYMm": 10.0142,
+      "radiusMm": 0.2718
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 3.2563,
+      "centerYMm": 17.9936,
+      "radiusMm": 0.2769
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 18.5627,
+      "centerYMm": 9.0832,
+      "radiusMm": 0.2379
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 9.3696,
+      "centerYMm": 10.8848,
+      "radiusMm": 0.2697
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 10.9598,
+      "centerYMm": 19.6953,
+      "radiusMm": 0.2427
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 9.214,
+      "centerYMm": 8.7672,
+      "radiusMm": 0.2424
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 9.8876,
+      "centerYMm": 5.8598,
+      "radiusMm": 0.2155
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 20.8432,
+      "centerYMm": 7.4417,
+      "radiusMm": 0.2659
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 27.5142,
+      "centerYMm": 5.7939,
+      "radiusMm": 0.2458
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 23.5239,
+      "centerYMm": 10.0851,
+      "radiusMm": 0.2235
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 9.3968,
+      "centerYMm": 19.4124,
+      "radiusMm": 0.2622
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 17.4362,
+      "centerYMm": 10.0905,
+      "radiusMm": 0.246
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 15.7136,
+      "centerYMm": 10.0081,
+      "radiusMm": 0.2356
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 13.4226,
+      "centerYMm": 11.6303,
+      "radiusMm": 0.2825
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 13.5011,
+      "centerYMm": 9.7155,
+      "radiusMm": 0.2221
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 2.7361,
+      "centerYMm": 16.4139,
+      "radiusMm": 0.2217
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 14.8229,
+      "centerYMm": 7.1482,
+      "radiusMm": 0.2149
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 25.5585,
+      "centerYMm": 5.9379,
+      "radiusMm": 0.2163
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 16.5895,
+      "centerYMm": 5.3134,
+      "radiusMm": 0.2667
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 7.7413,
+      "centerYMm": 19.7484,
+      "radiusMm": 0.2399
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 24.6174,
+      "centerYMm": 3.4068,
+      "radiusMm": 0.2844
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 3.8775,
+      "centerYMm": 15.0856,
+      "radiusMm": 0.2636
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 25.5541,
+      "centerYMm": 7.5776,
+      "radiusMm": 0.2426
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 22.6912,
+      "centerYMm": 4.7216,
+      "radiusMm": 0.2678
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 19.8174,
+      "centerYMm": 6.1462,
+      "radiusMm": 0.2707
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 5.2486,
+      "centerYMm": 18.4129,
+      "radiusMm": 0.2709
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 11.4994,
+      "centerYMm": 10.7041,
+      "radiusMm": 0.2853
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 27.0075,
+      "centerYMm": 4.1708,
+      "radiusMm": 0.284
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 28.4304,
+      "centerYMm": 3.6626,
+      "radiusMm": 0.2237
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 29.6902,
+      "centerYMm": 4.9608,
+      "radiusMm": 0.2801
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 25.9659,
+      "centerYMm": 1.9136,
+      "radiusMm": 0.2756
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 25.7154,
+      "centerYMm": 12.2778,
+      "radiusMm": 0.2529
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 8.7318,
+      "centerYMm": 12.5098,
+      "radiusMm": 0.253
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 11.2933,
+      "centerYMm": 8.6189,
+      "radiusMm": 0.2698
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 6.2323,
+      "centerYMm": 13.6717,
+      "radiusMm": 0.2848
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 13.0058,
+      "centerYMm": 7.3255,
+      "radiusMm": 0.2636
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 7.0974,
+      "centerYMm": 15.9127,
+      "radiusMm": 0.2502
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 5.5591,
+      "centerYMm": 10.9068,
+      "radiusMm": 0.2779
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 17.2319,
+      "centerYMm": 8.0988,
+      "radiusMm": 0.2399
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 8.4403,
+      "centerYMm": 6.561,
+      "radiusMm": 0.2683
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 14.655,
+      "centerYMm": 5.4358,
+      "radiusMm": 0.2634
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 27.5029,
+      "centerYMm": 9.1923,
+      "radiusMm": 0.2635
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 1.2779,
+      "centerYMm": 14.3297,
+      "radiusMm": 0.2729
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 4.7517,
+      "centerYMm": 13.3723,
+      "radiusMm": 0.2189
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 8.0647,
+      "centerYMm": 10.0304,
+      "radiusMm": 0.2386
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 27.5935,
+      "centerYMm": 0.7081,
+      "radiusMm": 0.2641
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 1.5529,
+      "centerYMm": 11.3745,
+      "radiusMm": 0.2582
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 12.0144,
+      "centerYMm": 6.0782,
+      "radiusMm": 0.2454
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 10.2665,
+      "centerYMm": 7.5107,
+      "radiusMm": 0.2701
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 7.0731,
+      "centerYMm": 8.1922,
+      "radiusMm": 0.2399
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 0.9348,
+      "centerYMm": 17.9593,
+      "radiusMm": 0.286
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 2.6759,
+      "centerYMm": 12.7872,
+      "radiusMm": 0.2566
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 7.6672,
+      "centerYMm": 4.8361,
+      "radiusMm": 0.2324
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 13.205,
+      "centerYMm": 4.5343,
+      "radiusMm": 0.2393
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 23.9496,
+      "centerYMm": 6.3247,
+      "radiusMm": 0.2338
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 7.2947,
+      "centerYMm": 11.6819,
+      "radiusMm": 0.2439
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 20.6544,
+      "centerYMm": 4.4861,
+      "radiusMm": 0.242
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 18.0702,
+      "centerYMm": 5.5592,
+      "radiusMm": 0.2296
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 14.9067,
+      "centerYMm": 11.3715,
+      "radiusMm": 0.2866
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 0.4223,
+      "centerYMm": 15.7987,
+      "radiusMm": 0.2455
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 11.0657,
+      "centerYMm": 4.5385,
+      "radiusMm": 0.2256
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 15.6381,
+      "centerYMm": 8.4198,
+      "radiusMm": 0.2206
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 28.9911,
+      "centerYMm": 1.8793,
+      "radiusMm": 0.2751
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 22.5675,
+      "centerYMm": 1.9259,
+      "radiusMm": 0.2462
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 12.1885,
+      "centerYMm": 2.6509,
+      "radiusMm": 0.2337
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 22.3005,
+      "centerYMm": 6.8866,
+      "radiusMm": 0.2354
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 10.7101,
+      "centerYMm": 2.2121,
+      "radiusMm": 0.2454
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 24.197,
+      "centerYMm": 1.0482,
+      "radiusMm": 0.2257
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 9.3751,
+      "centerYMm": 3.5162,
+      "radiusMm": 0.2824
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 18.536,
+      "centerYMm": 7.3334,
+      "radiusMm": 0.214
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 12.7386,
+      "centerYMm": 0.5023,
+      "radiusMm": 0.2752
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 19.6202,
+      "centerYMm": 1.737,
+      "radiusMm": 0.2844
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 21.8698,
+      "centerYMm": 3.3814,
+      "radiusMm": 0.2327
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 2.8139,
+      "centerYMm": 10.1103,
+      "radiusMm": 0.2817
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 17.127,
+      "centerYMm": 3.813,
+      "radiusMm": 0.2339
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 22.5684,
+      "centerYMm": 0.3566,
+      "radiusMm": 0.2274
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 5.2682,
+      "centerYMm": 8.4554,
+      "radiusMm": 0.2466
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 17.4976,
+      "centerYMm": 1.7221,
+      "radiusMm": 0.2241
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 11.2126,
+      "centerYMm": 0.2733,
+      "radiusMm": 0.2847
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 0.9135,
+      "centerYMm": 19.628,
+      "radiusMm": 0.2525
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 2.0403,
+      "centerYMm": 8.6115,
+      "radiusMm": 0.2603
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 14.5738,
+      "centerYMm": 1.4637,
+      "radiusMm": 0.2359
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 0.7642,
+      "centerYMm": 12.6847,
+      "radiusMm": 0.2467
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 0.4033,
+      "centerYMm": 7.9616,
+      "radiusMm": 0.2539
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 3.4604,
+      "centerYMm": 7.7164,
+      "radiusMm": 0.2211
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 4.1984,
+      "centerYMm": 11.746,
+      "radiusMm": 0.2307
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 14.7814,
+      "centerYMm": 3.5035,
+      "radiusMm": 0.2203
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 4.4474,
+      "centerYMm": 4.9532,
+      "radiusMm": 0.2435
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 21.1253,
+      "centerYMm": 1.1277,
+      "radiusMm": 0.2723
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 5.9852,
+      "centerYMm": 5.6889,
+      "radiusMm": 0.233
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 9.1639,
+      "centerYMm": 1.6555,
+      "radiusMm": 0.2837
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 2.4373,
+      "centerYMm": 5.1088,
+      "radiusMm": 0.2465
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 4.8339,
+      "centerYMm": 6.6986,
+      "radiusMm": 0.2316
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 7.6309,
+      "centerYMm": 3.3017,
+      "radiusMm": 0.2387
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 16.4468,
+      "centerYMm": 0.4691,
+      "radiusMm": 0.2523
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 4.3481,
+      "centerYMm": 9.8819,
+      "radiusMm": 0.2417
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 4.5906,
+      "centerYMm": 3.4232,
+      "radiusMm": 0.2798
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 19.0923,
+      "centerYMm": 3.6343,
+      "radiusMm": 0.2198
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 18.5797,
+      "centerYMm": 0.545,
+      "radiusMm": 0.276
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 6.0681,
+      "centerYMm": 2.6507,
+      "radiusMm": 0.2345
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 1.5147,
+      "centerYMm": 6.7852,
+      "radiusMm": 0.2663
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 16.1797,
+      "centerYMm": 2.6336,
+      "radiusMm": 0.2296
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 4.6354,
+      "centerYMm": 1.9025,
+      "radiusMm": 0.2813
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 27.4105,
+      "centerYMm": 2.5246,
+      "radiusMm": 0.2207
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 6.3896,
+      "centerYMm": 1.0486,
+      "radiusMm": 0.2502
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 2.3916,
+      "centerYMm": 2.2035,
+      "radiusMm": 0.2708
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 0.4181,
+      "centerYMm": 10.1413,
+      "radiusMm": 0.2829
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 29.6928,
+      "centerYMm": 0.3098,
+      "radiusMm": 0.2262
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 25.9425,
+      "centerYMm": 0.3832,
+      "radiusMm": 0.2571
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 3.8299,
+      "centerYMm": 0.2929,
+      "radiusMm": 0.2784
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 7.8477,
+      "centerYMm": 0.3298,
+      "radiusMm": 0.2133
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 0.4556,
+      "centerYMm": 0.4652,
+      "radiusMm": 0.2166
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 0.3082,
+      "centerYMm": 2.6938,
+      "radiusMm": 0.2723
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 0.7354,
+      "centerYMm": 4.566,
+      "radiusMm": 0.2277
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 1.9738,
+      "centerYMm": 0.3085,
+      "radiusMm": 0.2818
+    },
+    {
+      "shape": "circle",
+      "centerXMm": 3.03,
+      "centerYMm": 3.6757,
+      "radiusMm": 0.2282
+    }
+  ]
+}

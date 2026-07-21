@@ -1,0 +1,118 @@
+// patternfab-cli: a thin end-to-end driver over patternfab-core.
+//
+// Runs one pattern through the entire fabrication pipeline exactly as the
+// GUI (Phase 5) will orchestrate it: ingest -> constraint report -> bleed
+// compensation -> all four export formats -> sensor-physics uncertainty.
+// Its purpose is twofold: a manual smoke tool ("does a real pattern survive
+// the whole chain?"), and a worked example of the core call sequence the GUI
+// wraps.
+//
+// The process parameters below (constraints, DPI, relief, sensor noise) are
+// illustrative demo values, NOT defaults baked into the library — every one
+// of them is caller-supplied precisely because it depends on the specific
+// printer/laser/camera in use (see the header comments in ConstraintEngine.h,
+// StlExport.h, UncertaintyEngine.h). The GUI will collect them from the user.
+
+#include <patternfab/ConstraintEngine.h>
+#include <patternfab/DxfExport.h>
+#include <patternfab/PngExport.h>
+#include <patternfab/Pattern.h>
+#include <patternfab/StlExport.h>
+#include <patternfab/SvgExport.h>
+#include <patternfab/UncertaintyEngine.h>
+#include <patternfab/VectorInput.h>
+
+#include <filesystem>
+#include <iostream>
+#include <string>
+
+namespace fs = std::filesystem;
+
+int main(int argc, char *argv[]) {
+    if (argc != 3) {
+        std::cerr << "usage: patternfab-cli <pattern.json> <output-dir>\n"
+                  << "  Runs a PatternFab vector pattern through the full\n"
+                  << "  ingest -> constrain -> export -> uncertainty pipeline,\n"
+                  << "  writing SVG/DXF/PNG/STL into <output-dir>.\n";
+        return 2;
+    }
+    const std::string patternPath = argv[1];
+    const fs::path outDir = argv[2];
+
+    try {
+        fs::create_directories(outDir);
+
+        // --- 1. Ingest -------------------------------------------------
+        const patternfab::Pattern pattern = patternfab::loadPatternFromVectorFile(patternPath);
+        const auto &p = pattern.params;
+        std::cout << "Loaded " << pattern.primitives.size() << " primitives\n"
+                  << "  specimen        " << p.specimenWidthMm << " x " << p.specimenHeightMm << " mm\n"
+                  << "  imaging res     " << p.imagingResolutionPxPerMm << " px/mm\n"
+                  << "  target speckle  " << p.targetSpeckleSizeMm << " mm\n";
+
+        const patternfab::BoundingBox bbox = patternfab::computeBoundingBox(pattern);
+        std::cout << "  pattern extent  [" << bbox.minXMm << ", " << bbox.minYMm << "] .. ["
+                  << bbox.maxXMm << ", " << bbox.maxYMm << "] mm\n";
+
+        // --- 2. Constraint report -------------------------------------
+        // Demo constraints: a resin-print stamp/stencil process.
+        patternfab::ManufacturingConstraints constraints;
+        constraints.minFeatureSizeMm = 0.15;      // finest reliable resin feature
+        constraints.bleedCompensationMm = 0.03;   // ink/casting spread to erode away
+        constraints.minBridgeWidthMm = 0.20;      // thinnest safe material web
+
+        const patternfab::ConstraintReport report =
+            patternfab::evaluateConstraints(pattern, constraints);
+        std::cout << "\nConstraint report (demo process values):\n"
+                  << "  requires tiling         " << (report.patternRequiresTiling ? "YES (periodicity risk)" : "no")
+                  << "\n  min-feature violations   " << report.minimumFeatureSizeViolations.size()
+                  << "\n  bridging violations      " << report.bridgingViolations.size() << "\n";
+
+        // --- 3. Bleed compensation ------------------------------------
+        const patternfab::Pattern compensated =
+            patternfab::applyBleedCompensation(pattern, constraints);
+
+        // --- 4. Exports ------------------------------------------------
+        const std::string svg = (outDir / "pattern.svg").string();
+        const std::string dxf = (outDir / "pattern.dxf").string();
+        const std::string png = (outDir / "pattern.png").string();
+        const std::string stl = (outDir / "pattern.stl").string();
+
+        patternfab::exportPatternToSvg(compensated, svg);
+        patternfab::exportPatternToDxf(compensated, dxf);
+
+        const double dpi = 600.0; // direct-write / decal raster resolution
+        patternfab::exportPatternToPng(compensated, png, dpi);
+
+        patternfab::ReliefParameters relief;
+        relief.baseThicknessMm = 2.0;
+        relief.bumpHeightMm = 0.8;
+        relief.meshResolutionPerMm = 8.0;
+        patternfab::exportPatternToStl(compensated, stl, relief);
+
+        std::cout << "\nExported:\n"
+                  << "  " << svg << "\n"
+                  << "  " << dxf << "\n"
+                  << "  " << png << " (" << dpi << " dpi)\n"
+                  << "  " << stl << " (base " << relief.baseThicknessMm
+                  << " mm, bump " << relief.bumpHeightMm << " mm)\n";
+
+        // --- 5. Sensor-physics uncertainty ----------------------------
+        // Demo noise profile: a mid-range phone sensor at moderate ISO.
+        patternfab::SensorNoiseProfile noise;
+        noise.S = 1.2e-4;
+        noise.O = 4.0e-6;
+        const patternfab::UncertaintyMap umap =
+            patternfab::computeUncertaintyMap(pattern, noise);
+        const double lowFrac = patternfab::lowConfidenceFraction(umap, 1.0);
+        std::cout << "\nUncertainty map " << umap.widthPx << " x " << umap.heightPx
+                  << " px; low-confidence fraction (< 1.0) = "
+                  << (lowFrac * 100.0) << "%\n";
+
+        std::cout << "\nPipeline OK.\n";
+        return 0;
+    } catch (const std::exception &e) {
+        std::cerr << "error: " << e.what() << "\n";
+        return 1;
+    }
+}

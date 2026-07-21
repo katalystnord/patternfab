@@ -18,8 +18,13 @@ development path.
 Phase 4 complete — sensor-physics uncertainty: a design-time per-pixel
 DIC correlation confidence prediction combining local intensity gradient
 with a real camera sensor noise model, on top of Phase 3's export
-pipelines. All core functionality now built and tested; GUI (Phase 5)
-is still an empty shell.
+pipelines. All core functionality now built and tested.
+
+A `patternfab-cli` driver and an end-to-end integration test run a real
+sample field (`examples/sample_pattern.json`, a 175-speckle Poisson-disc
+pattern) through the whole ingest → constrain → export → uncertainty chain
+— the same call sequence the GUI will wrap. GUI (Phase 5) is still an empty
+shell.
 
 ## License
 

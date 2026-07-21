@@ -42,6 +42,24 @@ void testBoundingBoxAndTiling() {
     pattern.params.specimenWidthMm = 4.0;
     pattern.params.specimenHeightMm = 4.0;
     check(!patternfab::patternRequiresTiling(pattern), "pattern covering specimen does not require tiling");
+
+    // Physical margin: a real speckle field's bounding box is inset from the
+    // specimen edge by up to the speckle spacing (discrete dots, no ink past
+    // the last one). With a target speckle size set, an inset within one
+    // speckle must NOT be flagged as needing tiling...
+    patternfab::Pattern inset;
+    inset.params.specimenWidthMm = 10.0;
+    inset.params.specimenHeightMm = 10.0;
+    inset.params.targetSpeckleSizeMm = 0.5;
+    inset.primitives.push_back(makeCircle(0.3, 0.3, 0.25)); // extent 0.05..9.95
+    inset.primitives.push_back(makeCircle(9.7, 9.7, 0.25)); // (0.1mm short each side)
+    check(!patternfab::patternRequiresTiling(inset),
+          "field inset within one speckle does not require tiling");
+
+    // ...but leaving an uncovered strip wider than a speckle still does.
+    inset.params.specimenWidthMm = 12.0;
+    check(patternfab::patternRequiresTiling(inset),
+          "field short by more than one speckle requires tiling");
 }
 
 void testMinimumFeatureSize() {
