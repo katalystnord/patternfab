@@ -20,6 +20,8 @@
 #include <patternfab/StlExport.h>
 #include <patternfab/SvgExport.h>
 #include <patternfab/UncertaintyEngine.h>
+
+#include <algorithm>
 #include <patternfab/VectorInput.h>
 
 #include <filesystem>
@@ -104,10 +106,40 @@ int main(int argc, char *argv[]) {
         noise.O = 4.0e-6;
         const patternfab::UncertaintyMap umap =
             patternfab::computeUncertaintyMap(pattern, noise);
+        // ⚑ Reported as a DISTRIBUTION, with the flat-pixel share named for
+        // what it is. The obvious headline -- the fraction of pixels below
+        // some confidence -- is near 100% for a good speckle pattern and a bad
+        // one alike, because most pixels of any speckle pattern lie inside a
+        // dot or in the background and carry no intensity gradient at all. A
+        // number that cannot tell the two apart is worse than no number: it
+        // reads as a failing grade on a pattern that is fine.
+        //
+        // What carries the information is the confidence where there IS an
+        // edge to correlate, so the percentiles are printed too. No threshold
+        // is invented here for what counts as good: that depends on the
+        // correlation algorithm and the strain accuracy being chased, which is
+        // why lowConfidenceFraction() takes the level from its caller.
+        std::vector<double> sorted = umap.confidence;
+        std::sort(sorted.begin(), sorted.end());
+        const auto percentile = [&sorted](double fraction) {
+            if (sorted.empty()) {
+                return 0.0;
+            }
+            const size_t index = static_cast<size_t>(
+                fraction * static_cast<double>(sorted.size() - 1));
+            return sorted[index];
+        };
         const double lowFrac = patternfab::lowConfidenceFraction(umap, 1.0);
         std::cout << "\nUncertainty map " << umap.widthPx << " x " << umap.heightPx
-                  << " px; low-confidence fraction (< 1.0) = "
-                  << (lowFrac * 100.0) << "%\n";
+                  << " px, per-pixel confidence (gradient over sensor noise):\n"
+                  << "  median            " << percentile(0.50) << "\n"
+                  << "  90th percentile   " << percentile(0.90) << "\n"
+                  << "  99th percentile   " << percentile(0.99) << "\n"
+                  << "  below 1.0         " << (lowFrac * 100.0) << "% of pixels\n"
+                  << "\n  The last line is not a quality score. Most pixels of any\n"
+                  << "  speckle pattern are flat -- inside a dot or in the background --\n"
+                  << "  and correlation works over subsets, not single pixels, so a high\n"
+                  << "  share here is expected rather than a fault.\n";
 
         std::cout << "\nPipeline OK.\n";
         return 0;
