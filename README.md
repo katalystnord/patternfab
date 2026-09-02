@@ -80,6 +80,27 @@ cmake -S . -B build -DPATTERNFAB_BUILD_GUI=OFF
 `patternfab-core`, `patternfab-cli` and the whole test suite build and run
 that way on any distribution.
 
+## Development
+
+```bash
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
+
+Install the pre-commit hook once per clone. It refuses a commit that does not
+build and pass the suite:
+
+```bash
+git config core.hooksPath tools/git-hooks
+```
+
+**No em-dashes, or any other non-ASCII dash**, anywhere: in code, comments,
+documentation or user-facing text. `tools/check-no-em-dashes.sh` enforces it,
+in the hook and as CI's first job. Use `--` in a C++ comment and `-` in text a
+person reads. See [CLAUDE.md](CLAUDE.md) for why it is a check rather than a
+note.
+
 ## Sister tool
 
 PatternFab and [SurView DIC](https://github.com/katalystnord/SurView) are two

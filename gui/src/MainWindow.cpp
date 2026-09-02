@@ -87,10 +87,10 @@ void MainWindow::buildUi() {
     tighten(patternForm);
     fileLabel_ = new QLabel(tr("(none loaded)"));
     fileLabel_->setWordWrap(true);
-    specimenLabel_ = new QLabel("—");
-    resolutionLabel_ = new QLabel("—");
-    speckleLabel_ = new QLabel("—");
-    countLabel_ = new QLabel("—");
+    specimenLabel_ = new QLabel("-");
+    resolutionLabel_ = new QLabel("-");
+    speckleLabel_ = new QLabel("-");
+    countLabel_ = new QLabel("-");
     patternForm->addRow(tr("File:"), fileLabel_);
     patternForm->addRow(tr("Specimen:"), specimenLabel_);
     patternForm->addRow(tr("Imaging res:"), resolutionLabel_);
@@ -261,7 +261,7 @@ void MainWindow::refreshReport() {
 
     QString text;
     if (report.patternRequiresTiling) {
-        text += tr("⚠ Requires tiling — periodicity risk. The pattern does not "
+        text += tr("⚠ Requires tiling - periodicity risk. The pattern does not "
                    "cover the specimen in one application; repeating it injects "
                    "periodicity that aliases DIC correlation.\n\n");
     } else {
@@ -275,7 +275,7 @@ void MainWindow::refreshReport() {
     }
     text += tr("\nBridging violations: %1\n").arg(report.bridgingViolations.size());
     for (const auto &v : report.bridgingViolations) {
-        text += tr("  • #%1–#%2: %3\n")
+        text += tr("  • #%1-#%2: %3\n")
                     .arg(v.primitiveIndexA)
                     .arg(v.primitiveIndexB)
                     .arg(QString::fromStdString(v.message));

@@ -5,6 +5,15 @@ on:
   pull_request:
 
 jobs:
+  # First, because it costs seconds and needs nothing installed. Same position
+  # it holds in SurView DIC's own workflow.
+  no-em-dashes:
+    name: no non-ASCII dashes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: tools/check-no-em-dashes.sh
+
   # Two jobs, because the window and the library have different reach.
   #
   # patternfab-core, patternfab-cli and the whole test suite build on any
@@ -16,6 +25,7 @@ jobs:
 
   core:
     name: core, cli and tests (any distribution)
+    needs: no-em-dashes
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -43,6 +53,7 @@ jobs:
 
   gui:
     name: full build including the window (Ubuntu 26.04)
+    needs: no-em-dashes
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v4

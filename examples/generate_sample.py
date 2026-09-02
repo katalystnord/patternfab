@@ -6,7 +6,7 @@ Deterministic (fixed seed) so the checked-in sample is reproducible and the
 integration test that consumes it stays stable. This is a dev-time tool, not
 part of the build. Regenerate with:  python3 examples/generate_sample.py
 
-The field is a Bridson Poisson-disc distribution — the single large
+The field is a Bridson Poisson-disc distribution -- the single large
 randomized field CLAUDE.md's "periodicity trap" section calls for, covering
 the whole specimen in one application rather than tiling a small motif.
 """

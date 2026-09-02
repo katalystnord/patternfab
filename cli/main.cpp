@@ -8,7 +8,7 @@
 // wraps.
 //
 // The process parameters below (constraints, DPI, relief, sensor noise) are
-// illustrative demo values, NOT defaults baked into the library — every one
+// illustrative demo values, NOT defaults baked into the library -- every one
 // of them is caller-supplied precisely because it depends on the specific
 // printer/laser/camera in use (see the header comments in ConstraintEngine.h,
 // StlExport.h, UncertaintyEngine.h). The GUI will collect them from the user.

@@ -17,7 +17,7 @@ namespace patternfab {
 // returned Pattern).
 //
 // This is the fallback path for source patterns that don't already carry
-// vector geometry (see loadPatternFromVectorFile) — a naive fixed threshold,
+// vector geometry (see loadPatternFromVectorFile) -- a naive fixed threshold,
 // not adaptive/Otsu, and single-channel grayscale input only. Throws
 // std::runtime_error on an unreadable file or non-grayscale image.
 Pattern loadPatternFromRasterFile(const std::string &path, const PhysicalParameters &physicalParams);

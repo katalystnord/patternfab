@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+#
+# Refuse a commit that does not build and pass PatternFab's tests.
+#
+# ⚑ WHY THIS EXISTS. The regime is "run the suite, then commit" -- and a regime
+# that depends on remembering is a regime that lapses exactly when it matters,
+# under time pressure at the end of a long piece of work. This makes it
+# automatic. Carried over from SurView DIC, which is the same author's project
+# and the same standard.
+#
+# Install (per clone, since git does not ship hooks):
+#     git config core.hooksPath tools/git-hooks
+#
+# Skipping is deliberate and visible: `git commit --no-verify`.
+
+set -uo pipefail
+
+repo=$(git rev-parse --show-toplevel)
+cd "$repo" || exit 1
+
+# Em-dashes first: it costs milliseconds, applies to every file type, and is
+# the one rule here that a reviewer cannot see being broken -- an em-dash and a
+# hyphen are near-identical in a diff and in a code font.
+if ! "$repo/tools/check-no-em-dashes.sh" $(git diff --cached --name-only --diff-filter=ACMR); then
+    echo "pre-commit: em-dashes are not allowed in this code base. Commit refused." >&2
+    exit 1
+fi
+
+# A docs- or notes-only commit cannot break the build, so it pays nothing.
+# Uses the STAGED list, which is what is about to be committed.
+if ! git diff --cached --name-only --diff-filter=ACMR \
+     | grep -qE '\.(cpp|h|hpp|cc|cxx)$|CMakeLists\.txt$|\.cmake$'; then
+    exit 0
+fi
+
+if ! command -v cmake >/dev/null 2>&1; then
+    echo "pre-commit: cmake not found -- cannot verify. Fix your PATH, or commit with --no-verify." >&2
+    exit 1
+fi
+
+build="$repo/build-ninja"
+
+echo "pre-commit: building..."
+# Whatever this build directory was configured with is kept. On a machine whose
+# VTK links GUISupportQt against Qt5 that means PATTERNFAB_BUILD_GUI=OFF, and
+# the hook still verifies the library, the driver and every test.
+if ! cmake -S "$repo" -B "$build" -G Ninja >/dev/null 2>&1; then
+    echo "pre-commit: CMake configure FAILED. Commit refused." >&2
+    exit 1
+fi
+if ! cmake --build "$build" >/tmp/patternfab-pre-commit-build.log 2>&1; then
+    echo "pre-commit: BUILD FAILED. Commit refused." >&2
+    tail -30 /tmp/patternfab-pre-commit-build.log >&2
+    exit 1
+fi
+
+echo "pre-commit: running the test suite..."
+if ! ( cd "$build" && ctest --output-on-failure ) ; then
+    echo "" >&2
+    echo "pre-commit: TESTS FAILED. Commit refused." >&2
+    exit 1
+fi
+
+echo "pre-commit: build and tests green."
+exit 0

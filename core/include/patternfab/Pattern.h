@@ -7,7 +7,7 @@ namespace patternfab {
 enum class PrimitiveShape { Circle, Ellipse, Polygon };
 
 // All coordinates and dimensions are in millimeters (physical units), not
-// pixels — pixel-space inputs (the raster path) are converted at load time
+// pixels -- pixel-space inputs (the raster path) are converted at load time
 // using PhysicalParameters::imagingResolutionPxPerMm.
 struct Primitive {
     PrimitiveShape shape = PrimitiveShape::Circle;
