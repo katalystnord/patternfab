@@ -223,7 +223,7 @@
     .method-row h3 { margin-bottom: 0; }
   }
   .sisters { display: grid; grid-template-columns: 1fr; gap: 22px; }
-  @media (min-width: 820px) { .sisters { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 820px) { .sisters { grid-template-columns: repeat(2, 1fr); } }
   .sister { background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
             padding: 22px; }
   .sister h3 { margin: 0 0 6px; font-size: 1.02rem; }
@@ -487,12 +487,22 @@ cmake --build build
   </section>
 
   <section id="sisters">
-    <h2>Sister tools</h2>
+    <h2>Sister tool</h2>
     <p class="section-sub">
-      Three tools on the same bench, in the same ecosystem, under open
-      licences.
+      PatternFab and SurView DIC are two ends of one workflow: the speckle
+      pattern PatternFab makes is the pattern SurView measures.
     </p>
     <div class="sisters">
+      <div class="sister this">
+        <div class="role">Fabricate the pattern</div>
+        <h3>PatternFab</h3>
+        <p>
+          An optimized pattern into a stamp, a stencil, a decal or a
+          direct-write file, with the manufacturing constraints applied
+          before anything is made.
+        </p>
+        <p style="margin:0"><strong>This tool.</strong></p>
+      </div>
       <div class="sister">
         <div class="role">Measure the pattern</div>
         <h3>SurView DIC</h3>
@@ -502,24 +512,6 @@ cmake --build build
           ParaView and FreeCAD.
         </p>
         <a href="https://github.com/katalystnord/SurView">SurView DIC</a>
-      </div>
-      <div class="sister this">
-        <div class="role">Fabricate the pattern</div>
-        <h3>PatternFab</h3>
-        <p>
-          An optimized pattern into a stamp, a stencil, a decal or a
-          direct-write file, with the manufacturing constraints applied.
-        </p>
-        <p style="margin:0"><strong>This tool.</strong></p>
-      </div>
-      <div class="sister">
-        <div class="role">Digitise the figure</div>
-        <h3>PlotTracer</h3>
-        <p>
-          Data back out of the charts in a paper. Free, offline and
-          cross-platform.
-        </p>
-        <a href="https://plottracer.com">plottracer.com</a>
       </div>
     </div>
   </section>
@@ -552,8 +544,8 @@ cmake --build build
   <div class="footer-links">
     <a href="https://github.com/katalystnord/patternfab">GitHub</a>
     <a href="https://github.com/katalystnord/SurView">SurView DIC</a>
-    <a href="https://plottracer.com">PlotTracer</a>
     <a href="https://github.com/katalystnord/patternfab/blob/master/LICENSE">Licence</a>
+    <a href="https://plottracer.com">PlotTracer</a>
   </div>
   <p class="footer-note">Katalyst Nord &middot; PatternFab is free and open-source software.</p>
 </footer>

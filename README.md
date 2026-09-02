@@ -80,17 +80,15 @@ cmake -S . -B build -DPATTERNFAB_BUILD_GUI=OFF
 `patternfab-core`, `patternfab-cli` and the whole test suite build and run
 that way on any distribution.
 
-## Sister tools
+## Sister tool
 
-PatternFab is one of three tools from Katalyst Nord that sit on the same
-bench, in the same ecosystem, under open licences:
+PatternFab and [SurView DIC](https://github.com/katalystnord/SurView) are two
+ends of one workflow: the speckle pattern PatternFab makes is the pattern
+SurView measures. Same Qt and VTK stack, same licence, same ecosystem.
 
-- **[SurView DIC](https://github.com/katalystnord/SurView)** - measures the
-  pattern. Speckle images in, displacement and strain fields out, into
-  ParaView and FreeCAD.
-- **PatternFab** - fabricates the pattern. This tool.
-- **[PlotTracer](https://plottracer.com)** - digitises the figure. Data back
-  out of the charts in a paper.
+- **PatternFab** fabricates the pattern. This tool.
+- **SurView DIC** measures it. Speckle images in, displacement and strain
+  fields out, into ParaView and FreeCAD.
 
 ## License
 
