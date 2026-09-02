@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PatternFab - speckle patterns you can actually make</title>
+<meta name="description" content="Free, open-source desktop software that turns an optimized DIC speckle pattern into a physical fabrication file: STL relief for a 3D-printed stamp, SVG and DXF for a laser-cut stencil, PNG at correct DPI for direct-write or decal transfer. Built on Qt and VTK. LGPL-2.1-or-later.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Palette taken from the instrument's own field colour ramp - the blue of an
+     unmoved point through to the red of the largest displacement measured - so
+     the page reads as the same product as the screenshots on it. */
+  :root {
+    --bg: #fbfcfd;
+    --surface: #ffffff;
+    --text: #131a21;
+    --text-dim: #55616d;
+    --border: #e2e8ee;
+    --accent: #1a6fb5;
+    --accent-strong: #14568c;
+    --accent-soft: #e8f1f9;
+    --accent-grad-1: #1a6fb5;
+    --accent-grad-2: #0f9b8e;
+    --hot: #d9531e;
+    --dark: #0f1720;
+    --code-bg: #f2f5f8;
+    --shadow: 0 1px 2px rgba(15,23,32,0.05), 0 8px 24px rgba(15,23,32,0.09);
+  }
+  :root[data-theme="dark"] {
+    --bg: #10161c;
+    --surface: #182028;
+    --text: #eef3f7;
+    --text-dim: #a7b4c0;
+    --border: #26313b;
+    --accent: #4aa3e0;
+    --accent-strong: #8ccbf2;
+    --accent-soft: rgba(74,163,224,0.14);
+    --accent-grad-1: #4aa3e0;
+    --accent-grad-2: #2bb8a6;
+    --hot: #f0743c;
+    --dark: #0b1116;
+    --code-bg: #1d262f;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 30px rgba(0,0,0,0.45);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10161c;
+      --surface: #182028;
+      --text: #eef3f7;
+      --text-dim: #a7b4c0;
+      --border: #26313b;
+      --accent: #4aa3e0;
+      --accent-strong: #8ccbf2;
+      --accent-soft: rgba(74,163,224,0.14);
+      --accent-grad-1: #4aa3e0;
+      --accent-grad-2: #2bb8a6;
+      --hot: #f0743c;
+      --dark: #0b1116;
+      --code-bg: #1d262f;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 30px rgba(0,0,0,0.45);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+  a { color: var(--accent-strong); }
+  img { max-width: 100%; }
+
+  header.nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 24px; max-width: 1080px; margin: 0 auto;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 1.05rem; }
+  .nav-links { display: flex; gap: 26px; font-size: 0.95rem; }
+  .nav-links a { color: var(--text-dim); text-decoration: none; }
+  .nav-links a:hover { color: var(--text); }
+  @media (max-width: 640px) { .nav-links { display: none; } }
+
+  .hero { padding: 48px 0 36px; text-align: center; }
+  h1 {
+    font-size: clamp(2.1rem, 4.6vw, 3.1rem);
+    line-height: 1.1; margin: 0 0 16px; letter-spacing: -0.02em;
+  }
+  .tagline {
+    font-size: clamp(1.05rem, 2vw, 1.22rem); color: var(--text-dim);
+    max-width: 660px; margin: 0 auto 30px;
+  }
+  .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .btn {
+    display: inline-block; padding: 12px 22px; border-radius: 9px;
+    text-decoration: none; font-weight: 600; font-size: 0.97rem;
+    border: 1px solid transparent; transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary { background: var(--accent); color: #fff; box-shadow: var(--shadow); }
+  .btn-secondary { background: var(--surface); color: var(--text); border-color: var(--border); }
+  .free-note { font-size: 0.9rem; color: var(--text-dim); margin: 0 0 34px; }
+
+  .shot-frame {
+    border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+    box-shadow: var(--shadow); background: var(--surface); line-height: 0;
+  }
+  .shot-frame img { width: 100%; display: block; }
+
+  section { padding: 56px 0; }
+  h2 {
+    font-size: clamp(1.5rem, 2.8vw, 2.05rem); margin: 0 0 12px;
+    letter-spacing: -0.01em; text-align: center;
+  }
+  .section-sub {
+    color: var(--text-dim); text-align: center; max-width: 720px;
+    margin: 0 auto 40px; font-size: 1.02rem;
+  }
+
+  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 22px; }
+  .feature {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 22px;
+  }
+  .feature h3 { margin: 0 0 8px; font-size: 1.03rem; }
+  .feature p { margin: 0; color: var(--text-dim); font-size: 0.94rem; }
+  .icon {
+    width: 34px; height: 34px; border-radius: 9px; margin-bottom: 14px;
+    background: var(--accent-soft); color: var(--accent-strong);
+    display: flex; align-items: center; justify-content: center; font-size: 1.05rem;
+  }
+
+  .gallery { display: grid; gap: 40px; }
+  .gallery-item { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: center; }
+  @media (min-width: 860px) {
+    .gallery-item { grid-template-columns: 1.35fr 1fr; }
+    /* A tall, narrow panel needs a narrow column, or the row becomes a column
+       of whitespace beside one very long picture. */
+    .gallery-item.tall { grid-template-columns: 0.75fr 1.25fr; align-items: start; }
+    .gallery-item.flip .shot { order: 2; }
+  }
+  .gallery-item h3 { margin: 0 0 8px; font-size: 1.15rem; }
+  .gallery-item p { margin: 0 0 10px; color: var(--text-dim); font-size: 0.96rem; }
+  .shot { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); line-height: 0; background: var(--surface); }
+  .shot img { width: 100%; display: block; }
+
+  .split { display: grid; grid-template-columns: 1fr; gap: 22px; }
+  @media (min-width: 780px) { .split { grid-template-columns: 1fr 1fr; } }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px;
+  }
+  .card h3 { margin: 0 0 10px; font-size: 1.08rem; }
+  .card p { color: var(--text-dim); font-size: 0.95rem; margin: 0 0 10px; }
+  .card ul { margin: 0; padding-left: 18px; color: var(--text-dim); font-size: 0.93rem; }
+  .card li { margin-bottom: 5px; }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px; overflow-x: auto; font-size: 0.88rem; line-height: 1.5;
+  }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+  .pillars { display: grid; grid-template-columns: 1fr; gap: 22px; }
+  @media (min-width: 780px) { .pillars { grid-template-columns: 1fr 1fr; } }
+  .pillar {
+    border-left: 3px solid var(--accent); padding: 4px 0 4px 20px;
+  }
+  .pillar:last-child { border-left-color: var(--hot); }
+  .pillar h3 { margin: 0 0 8px; font-size: 1.05rem; }
+  .pillar p { margin: 0; color: var(--text-dim); font-size: 0.95rem; }
+
+  .credit-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 26px; text-align: center;
+  }
+  .credit-box p { color: var(--text-dim); margin: 0 0 10px; font-size: 0.95rem; }
+  .credit-box p:last-child { margin-bottom: 0; }
+
+  footer { border-top: 1px solid var(--border); margin-top: 20px; padding: 30px 0 50px; }
+  .footer-links {
+    display: flex; gap: 24px; justify-content: center; flex-wrap: wrap;
+    font-size: 0.92rem; margin-bottom: 12px;
+  }
+  .footer-links a { color: var(--text-dim); text-decoration: none; }
+  .footer-links a:hover { color: var(--text); }
+  .footer-note { text-align: center; color: var(--text-dim); font-size: 0.86rem; }
+
+  /* Specification list, the way an engineering tool is actually compared:
+     scannable rows of fact rather than benefit cards. */
+  .spec { display: grid; grid-template-columns: 1fr; gap: 0; border: 1px solid var(--border);
+          border-radius: 12px; overflow: hidden; background: var(--surface); }
+  .spec-row { display: grid; grid-template-columns: 1fr; gap: 4px; padding: 14px 18px;
+              border-top: 1px solid var(--border); }
+  .spec-row:first-child { border-top: none; }
+  @media (min-width: 720px) {
+    .spec-row { grid-template-columns: 230px 1fr; gap: 18px; align-items: baseline; }
+  }
+  .spec-key { font-weight: 600; font-size: 0.93rem; }
+  .spec-val { color: var(--text-dim); font-size: 0.93rem; }
+  .spec-val code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; font-size: 0.88em; }
+
+  .bullets { columns: 2; column-gap: 34px; margin: 0; padding-left: 20px; color: var(--text-dim); font-size: 0.96rem; }
+  .bullets li { margin-bottom: 9px; break-inside: avoid; }
+  @media (max-width: 700px) { .bullets { columns: 1; } }
+</style><style>
+  /* PatternFab-only additions on top of the shared stylesheet. */
+  .method { display: grid; grid-template-columns: 1fr; gap: 0; border: 1px solid var(--border);
+            border-radius: 12px; overflow: hidden; background: var(--surface); }
+  .method-row { padding: 18px; border-top: 1px solid var(--border); }
+  .method-row:first-child { border-top: none; }
+  .method-row h3 { margin: 0 0 6px; font-size: 1.02rem; }
+  .method-row p { margin: 0 0 6px; color: var(--text-dim); font-size: 0.94rem; }
+  .method-row .cite { font-size: 0.86rem; color: var(--text-dim); }
+  @media (min-width: 720px) {
+    .method-row { display: grid; grid-template-columns: 200px 1fr; gap: 18px; align-items: start; }
+    .method-row h3 { margin-bottom: 0; }
+  }
+  .sisters { display: grid; grid-template-columns: 1fr; gap: 22px; }
+  @media (min-width: 820px) { .sisters { grid-template-columns: repeat(3, 1fr); } }
+  .sister { background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+            padding: 22px; }
+  .sister h3 { margin: 0 0 6px; font-size: 1.02rem; }
+  .sister .role { font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em;
+                  color: var(--accent-strong); font-weight: 600; margin-bottom: 10px; }
+  .sister p { margin: 0 0 10px; color: var(--text-dim); font-size: 0.93rem; }
+  .sister.this { border-color: var(--accent); background: var(--accent-soft); }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="brand">
+    <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+      <rect x="1" y="1" width="30" height="30" rx="7" fill="var(--dark)"/>
+      <!-- The stamp: a base plate seen edge on, with speckle bumps standing
+           off it. The same dots as SurView's mark, given a third dimension. -->
+      <rect x="5" y="20" width="22" height="5" rx="1.5" fill="#4aa3e0"/>
+      <circle cx="9" cy="15" r="2.2" fill="#8fd3c8"/>
+      <circle cx="16" cy="13" r="1.5" fill="#e8b13c"/>
+      <circle cx="22" cy="15.5" r="1.9" fill="#e8743c"/>
+      <circle cx="12.5" cy="9" r="1.4" fill="#2bb8a6"/>
+      <circle cx="19" cy="8" r="1.8" fill="#d9531e"/>
+    </svg>
+    PatternFab
+  </div>
+  <nav class="nav-links">
+    <a href="#capabilities">Capabilities</a>
+    <a href="#specification">Specification</a>
+    <a href="#methods">Methods</a>
+    <a href="#screenshots">Screenshots</a>
+    <a href="#get">Build</a>
+    <a href="https://github.com/katalystnord/patternfab">GitHub</a>
+  </nav>
+</header>
+
+<div class="wrap">
+
+  <section class="hero">
+    <h1>PatternFab</h1>
+    <p class="tagline">
+      Software for making DIC speckle patterns physical: an optimized pattern
+      in, a fabrication file out, with the manufacturing constraints already
+      applied.
+    </p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="#get">Build from source</a>
+      <a class="btn btn-secondary" href="https://github.com/katalystnord/patternfab">Source on GitHub</a>
+    </div>
+    <p class="free-note">Free and open source, LGPL-2.1-or-later &middot; Qt and VTK &middot; sister tool to <a href="https://github.com/katalystnord/SurView">SurView DIC</a></p>
+
+    <div class="shot-frame">
+      <img src="assets/stencil-preview.png" alt="The PatternFab window: a 175-speckle pattern over a 30 by 20 mm specimen, manufacturing constraints on the left with a constraint report reading no tiling needed and zero violations, and export buttons for SVG, DXF, PNG and STL.">
+    </div>
+  </section>
+
+  <section id="capabilities">
+    <h2>Capabilities</h2>
+    <p class="section-sub">
+      A good speckle pattern is designed digitally and then has to survive
+      being made. PatternFab is the step in between: it applies the real
+      constraints of the process you will use, and writes the file that
+      process needs.
+    </p>
+    <ul class="bullets">
+      <li>Vector patterns read directly, raster patterns via contour and blob detection</li>
+      <li>Minimum feature size checked against the chosen process</li>
+      <li>Bleed compensation applied before export, not after the fact</li>
+      <li>Stencil and stamp bridging checked, so a cut stencil holds together</li>
+      <li>Tiling checked for the periodicity it would inject</li>
+      <li>SVG and DXF for a laser-cut stencil</li>
+      <li>PNG at a caller-supplied DPI for direct-write or decal transfer</li>
+      <li>STL relief for a 3D-printed stamp or a silicone-cast mold</li>
+      <li>Per-pixel correlation confidence from a real camera noise model</li>
+      <li>2D stencil and 3D relief previews of what will be written</li>
+    </ul>
+  </section>
+
+  <section id="specification">
+    <h2>Specification</h2>
+    <p class="section-sub">
+      What the software does, in the terms the process needs.
+    </p>
+    <div class="spec">
+      <div class="spec-row">
+        <div class="spec-key">Reads</div>
+        <div class="spec-val">Vector speckle primitives as JSON (shape, centre, radius) with the specimen's physical parameters, or a raster PNG or TIFF pattern through contour and blob detection.</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Physical parameters</div>
+        <div class="spec-val">Specimen width and height in mm, imaging resolution in px/mm, and target speckle size in mm. Every constraint and every export is computed in millimetres from these, never in pixels of the source picture.</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Constraints</div>
+        <div class="spec-val">Minimum feature size, bleed compensation and minimum bridge width, each in mm, each reported as a count of violations rather than silently applied.</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Non-periodicity</div>
+        <div class="spec-val">A pattern too small for the specimen has to be tiled, and tiling a random field makes it periodic, which is the one thing correlation cannot tolerate. The report states whether tiling is needed before anything is written.</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Writes</div>
+        <div class="spec-val"><code>.svg</code> and <code>.dxf</code> stencils, <code>.png</code> at any DPI from 50 to 4800, and <code>.stl</code> relief with a chosen base thickness and bump height.</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Uncertainty</div>
+        <div class="spec-val">A design-time per-pixel DIC correlation confidence, combining local intensity gradient with a measured camera sensor noise model rather than a pattern-only heuristic. In the library and the command-line driver today; not yet in the window.</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Architecture</div>
+        <div class="spec-val">A headless <code>patternfab-core</code> library with no dependency on interactive widgets, wrapped by a thin Qt application and a command-line driver. The library is unit-tested directly.</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Built on</div>
+        <div class="spec-val">Qt 6 (window, and <code>QSvgGenerator</code> for SVG), VTK 9 (relief mesh and STL), dime (DXF), nlohmann/json. The same Qt and VTK stack as FreeCAD, ParaView and SurView DIC.</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Licence</div>
+        <div class="spec-val">LGPL-2.1-or-later. Fully open source, no proprietary tier.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="methods">
+    <h2>The fabrication methods</h2>
+    <p class="section-sub">
+      The methods themselves are published work by other people, not
+      inventions of this project. PatternFab's contribution is the software
+      bridge from a pattern to the file each method needs.
+    </p>
+    <div class="method">
+      <div class="method-row">
+        <h3>Stamp or mold</h3>
+        <div>
+          <p>
+            An STL relief, resin-printed as a stamp directly or as a mold to
+            cast silicone from. The strongest method for medium and large
+            speckle. FDM printing alone cannot hold fine features at a 0.4 mm
+            nozzle, which is why the mold path exists.
+          </p>
+          <p class="cite">
+            Diani, Geraud, Coq et al., "Stamps for Pattern Applications for DIC
+            or Markers Tracking", <em>Experimental Techniques</em>, 2026.
+          </p>
+        </div>
+      </div>
+      <div class="method-row">
+        <h3>Direct-write</h3>
+        <div>
+          <p>
+            A PNG at the correct DPI, driving a modified 3D printer that
+            dispenses ink through a syringe in a Poisson-disc distribution.
+            Suited to fine speckle.
+          </p>
+          <p class="cite">
+            Yang, Tao, Franck, "Smart DIC Patterns via 3D Printing",
+            <em>Experimental Mechanics</em>, 2021.
+          </p>
+        </div>
+      </div>
+      <div class="method-row">
+        <h3>Decal transfer</h3>
+        <div>
+          <p>
+            The same PNG, printed to water-slide transfer paper. Confirmed
+            stable under impact loading and large strain, and the fastest
+            method to apply.
+          </p>
+          <p class="cite">
+            Quino et al., "Speckle patterns for DIC in challenging scenarios",
+            <em>Measurement Science and Technology</em>, 2020.
+          </p>
+        </div>
+      </div>
+      <div class="method-row">
+        <h3>Stencil</h3>
+        <div>
+          <p>
+            SVG or DXF for a laser cutter, with bridging checked so the cut
+            stencil holds together. Spray through a stencil is the weakest
+            reproducible method, with edge bleed, halo and clogging: PatternFab
+            supports it, and says plainly that a stamp or a transfer is better
+            where either will do.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="screenshots">
+    <h2>Screenshots</h2>
+    <p class="section-sub">
+      The sample pattern that ships with the source: 175 Poisson-disc speckles
+      over a 30 by 20 mm specimen, imaged at 40 px/mm.
+    </p>
+    <div class="gallery">
+
+      <div class="gallery-item">
+        <div class="shot">
+          <img src="assets/stencil-preview.png" alt="The 2D stencil preview showing the speckle field over the specimen, with the constraint report reading zero minimum-feature violations and zero bridging violations.">
+        </div>
+        <div>
+          <h3>What will be cut, and whether it holds</h3>
+          <p>
+            The constraint report answers the three questions that decide
+            whether a pattern can be made at all: does it cover the specimen in
+            one application, is any feature smaller than the process can hold,
+            and does any bridge fall below the minimum width.
+          </p>
+          <p>
+            Set the constraints in millimetres for your own process. The report
+            and the previews follow immediately, before anything is written.
+          </p>
+        </div>
+      </div>
+
+      <div class="gallery-item flip">
+        <div class="shot">
+          <img src="assets/relief-preview.png" alt="The 3D relief preview: the pattern as a stamp, a rectangular base plate with a raised bump at every speckle, rendered in the window.">
+        </div>
+        <div>
+          <h3>The stamp, before it is printed</h3>
+          <p>
+            The same pattern as a relief, with the base thickness and bump
+            height you will print, rendered in the window through VTK rather
+            than left to the slicer to reveal.
+          </p>
+          <p>
+            This is the geometry that goes into the STL, not an impression of
+            it.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="get">
+    <h2>Build</h2>
+    <p class="section-sub">
+      PatternFab builds from source on Ubuntu 26.04 and equivalents.
+    </p>
+    <pre><code>sudo apt install libvtk9-dev libvtk9-qt-dev \
+    qt6-base-dev qt6-base-dev-tools qt6-svg-dev \
+    libdime-dev nlohmann-json3-dev
+
+git clone https://github.com/katalystnord/patternfab.git
+cd patternfab
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+
+./build/gui/patternfab-gui examples/sample_pattern.json</code></pre>
+    <p class="section-sub" style="margin-top:24px">
+      The last line opens the sample pattern already loaded, which is the
+      screenshot above. The window needs a VTK whose <code>GUISupportQt</code>
+      is built against Qt6; Ubuntu 24.04 and older ship one built against Qt5,
+      and one process cannot hold both. Build with
+      <code>-DPATTERNFAB_BUILD_GUI=OFF</code> there, and the library, the
+      command-line driver and the whole test suite still build and run.
+    </p>
+  </section>
+
+  <section id="sisters">
+    <h2>Sister tools</h2>
+    <p class="section-sub">
+      Three tools on the same bench, in the same ecosystem, under open
+      licences.
+    </p>
+    <div class="sisters">
+      <div class="sister">
+        <div class="role">Measure the pattern</div>
+        <h3>SurView DIC</h3>
+        <p>
+          Speckle images in, displacement and strain fields out, with every
+          point's reliability reported and full provenance carried into
+          ParaView and FreeCAD.
+        </p>
+        <a href="https://github.com/katalystnord/SurView">SurView DIC</a>
+      </div>
+      <div class="sister this">
+        <div class="role">Fabricate the pattern</div>
+        <h3>PatternFab</h3>
+        <p>
+          An optimized pattern into a stamp, a stencil, a decal or a
+          direct-write file, with the manufacturing constraints applied.
+        </p>
+        <p style="margin:0"><strong>This tool.</strong></p>
+      </div>
+      <div class="sister">
+        <div class="role">Digitise the figure</div>
+        <h3>PlotTracer</h3>
+        <p>
+          Data back out of the charts in a paper. Free, offline and
+          cross-platform.
+        </p>
+        <a href="https://plottracer.com">plottracer.com</a>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Licence and credits</h2>
+    <div class="credit-box">
+      <p>
+        PatternFab is free software under the
+        <a href="https://github.com/katalystnord/patternfab/blob/master/LICENSE">GNU Lesser General Public License, version 2.1 or later</a>,
+        the same licence FreeCAD uses in the same ecosystem.
+      </p>
+      <p>
+        Built on <a href="https://www.qt.io/">Qt</a> and
+        <a href="https://vtk.org/">VTK</a>, with
+        <a href="https://github.com/coin3d/dime">dime</a> for DXF and
+        <a href="https://github.com/nlohmann/json">nlohmann/json</a>.
+      </p>
+      <p>
+        The fabrication methods are the published work of the authors cited
+        above. PatternFab implements the software bridge to them and claims
+        none of them.
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="footer-links">
+    <a href="https://github.com/katalystnord/patternfab">GitHub</a>
+    <a href="https://github.com/katalystnord/SurView">SurView DIC</a>
+    <a href="https://plottracer.com">PlotTracer</a>
+    <a href="https://github.com/katalystnord/patternfab/blob/master/LICENSE">Licence</a>
+  </div>
+  <p class="footer-note">Katalyst Nord &middot; PatternFab is free and open-source software.</p>
+</footer>
+
+</body>
+</html>
