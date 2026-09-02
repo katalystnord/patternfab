@@ -45,5 +45,5 @@ vtk_module_autoinit(
     MODULES ${VTK_LIBRARIES}
 )
 
-enable_testing()
+# enable_testing() lives at the top level, not here -- see the note there.
 add_subdirectory(tests)

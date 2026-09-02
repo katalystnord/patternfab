@@ -5,8 +5,45 @@ on:
   pull_request:
 
 jobs:
-  build:
+  # Two jobs, because the window and the library have different reach.
+  #
+  # patternfab-core, patternfab-cli and the whole test suite build on any
+  # distribution. patternfab-gui additionally needs a VTK whose GUISupportQt
+  # is built against Qt6, and ubuntu-latest (24.04, VTK 9.1) builds it against
+  # Qt5. Running only the second job would leave the library untested wherever
+  # the preview runner is unavailable; running only the first would never
+  # compile the window at all. Both, then.
+
+  core:
+    name: core, cli and tests (any distribution)
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libvtk9-dev \
+            qt6-base-dev qt6-base-dev-tools qt6-svg-dev \
+            libdime-dev \
+            nlohmann-json3-dev
+
+      - name: Configure
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DPATTERNFAB_BUILD_GUI=OFF
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      # From the build root, which is where a person runs it. Pointed at
+      # build/core/tests until 2026-09-02 to work around enable_testing()
+      # living in core/ rather than at the top level.
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+  gui:
+    name: full build including the window (Ubuntu 26.04)
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v4
 
@@ -26,4 +63,4 @@ jobs:
         run: cmake --build build --parallel
 
       - name: Test
-        run: ctest --test-dir build/core/tests --output-on-failure
+        run: ctest --test-dir build --output-on-failure
