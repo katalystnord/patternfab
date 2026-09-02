@@ -224,7 +224,13 @@ void MainWindow::openPattern() {
     if (path.isEmpty()) {
         return;
     }
+    loadPattern(path);
+}
 
+// Separated from the dialog so that a path can also arrive from the command
+// line, which is how a file manager, a terminal and a screenshot script all
+// open a pattern. The dialog is one caller of this, not the only door in.
+void MainWindow::loadPattern(const QString &path) {
     try {
         patternfab::Pattern loaded = patternfab::loadPatternFromVectorFile(path.toStdString());
         pattern_ = std::move(loaded);

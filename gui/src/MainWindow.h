@@ -24,6 +24,10 @@ class MainWindow : public QMainWindow {
 public:
     explicit MainWindow(QWidget *parent = nullptr);
 
+    // Load a pattern from a path, reporting any failure in a dialog. Public
+    // because main() calls it for a path given on the command line.
+    void loadPattern(const QString &path);
+
 private slots:
     void openPattern();
     void exportSvg();

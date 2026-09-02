@@ -15,5 +15,13 @@ int main(int argc, char *argv[]) {
     MainWindow window;
     window.show();
 
+    // patternfab-gui <pattern.json> opens that pattern straight away. Loaded
+    // after show() so that a failure reports itself in a dialog over a real
+    // window rather than against nothing.
+    const QStringList args = QApplication::arguments();
+    if (args.size() > 1) {
+        window.loadPattern(args.at(1));
+    }
+
     return app.exec();
 }
