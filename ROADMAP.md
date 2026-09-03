@@ -126,6 +126,45 @@ VTK 3D relief previews.
   What PatternFab would contribute is the layout: speckle layer, cut layer,
   indicator windows, fiducials, all at true scale on one artefact.
 
+- **A foil carrier, with the pattern EMBOSSED rather than printed.** For a
+  free-standing strip that is itself the measurement medium, rather than a
+  coating on somebody's specimen, thin annealed aluminium foil is a strong
+  carrier: it yields at a few tenths of a per cent with essentially no in-plane
+  springback, which is the property the whole idea rests on, since a strip that
+  sprang back would read as a clean null result rather than a failure.
+
+  Two advantages that are easy to miss. Foil is dimensionally stable, where
+  paper and polymer absorb moisture and change size between two photographs
+  taken days apart -- and a uniform size change is exactly what strain looks
+  like. And at 15 to 30 um it is roughly an order of magnitude thinner than
+  pressure film, whose two-sheet type runs about 90 um per film; when the thing
+  under investigation IS a clearance, the sensor's own thickness is a
+  measurement error.
+
+  ⚑ **Embossing collapses the cut-layer problem for this artefact.** A pattern
+  pressed into the foil IS the carrier: no coating, so nothing to stiffen,
+  delaminate or shear, and no need to divide it into islands at all. The cut
+  layer above still matters for a sticker applied to somebody else's specimen;
+  it does not apply here. Embossing also survives handling, heat and solvent,
+  and it sidesteps ink adhering poorly to bare aluminium.
+
+  **The existing STL relief export is already the tool**, since an embossing die
+  is the same object as the 3D-printed stamp it was built for.
+
+  Four things to design around: bright foil is a mirror and specular highlights
+  wreck correlation, so the matte side or etched stock; embossed relief reads by
+  SHADING and so depends on lighting direction, where etching gives a tonal
+  pattern instead; thickness is a real trade, since too thin tears and too thick
+  will not conform; and rolled foil is anisotropic with a rolling direction once
+  the strain is quantitative.
+
+  A form factor worth borrowing whole: a plaster. Grip the wings, never touch
+  the pad -- which is the handling-damage problem solved by shape rather than by
+  discipline, and those same wings, having seen no load, ARE the control region
+  whose apparent strain is pure handling and reading error. The sealed wrapper
+  protects an indicator layer from premature exposure and is the natural place
+  for the batch identity and calibration to live.
+
 ## Test and tooling debt
 
 - **The GUI's uncertainty map** is in `patternfab-core` and `patternfab-cli` and
