@@ -13,42 +13,21 @@ apply manufacturing constraints (minimum feature size, bleed, bridging, and a
 tiling check that refuses to inject periodicity), and write every export -
 SVG and DXF for a laser-cut stencil, PNG at a caller-supplied DPI for
 direct-write or decal transfer, and STL relief for a 3D-printed stamp or mould.
-Plus a design-time sensor-physics uncertainty map, and a GUI with 2D stencil and
-VTK 3D relief previews.
+A GUI with 2D stencil and VTK 3D relief previews.
+
+And two design-time uncertainty figures from the same rendering: a per-pixel
+confidence map, and **the displacement noise floor in pixels** - DIC's sigma,
+by the definition SurView measures after a run, so a designed figure and a
+measured one can be set side by side. It is an upper bound rather than a
+prediction: the difference between the two is the fabrication and imaging
+penalty.
 
 ## Next
 
-- **Report the design-time uncertainty as a DISPLACEMENT NOISE FLOOR, in
-  pixels.** `UncertaintyEngine` computes local intensity gradient over sensor
-  noise per pixel: sound physics, but a dimensionless confidence whose threshold
-  is caller-supplied, so it has no absolute meaning and cannot be compared with
-  anything. SurView's measured figure is DIC's sigma,
-  `sqrt(2 * noise^2 / min(sum gx^2, sum gy^2))`, aggregated over the subset and
-  carried in pixels of displacement. Same physics, one extra aggregation, and
-  the number acquires a unit and a meaning.
-
-  ⚑ **Why this is worth doing even on its own: it closes a loop nobody in the
-  field closes.** PatternFab would then state, before anything is fabricated,
-  the noise floor a pattern could achieve under a named sensor; SurView states,
-  after the run, the noise floor it actually achieved. Both in pixels, both by
-  the same definition. The literature is explicit that this is missing -- design
-  today rests on "approximated uncertainty models or upon image quality metrics
-  that are linked loosely with the actual value of uncertainty", and a 2025
-  assessment found none of ten published metrics agreeing substantially with
-  measured error. Closed-loop work that does exist closes it in SIMULATION, by
-  rendering deformed images; simulation cannot see ink bleed, substrate texture,
-  focus, lighting or the printer.
-
-  ⚑ **State it as a BOUND, never as a prediction.** PatternFab renders an ideal
-  pattern; SurView photographs a fabricated one. The two will not agree, and
-  that is the point: the difference IS the fabrication and imaging penalty,
-  which is the quantity nobody currently measures. Claiming to predict what
-  SurView will measure would be wrong on the first specimen and would deserve to
-  be.
-
-  Not scope drift, though it sits near the line the README draws. PatternFab
-  still does not score a pattern in the abstract; this is what a FABRICATED
-  artefact can achieve under a real sensor, which is a fabrication question.
+- **Surface the noise floor in the GUI.** `computeNoiseFloorMap()` and
+  `summariseNoiseFloor()` are in `patternfab-core` and reported by
+  `patternfab-cli`; the window still shows only the dimensionless confidence
+  map. Same gap the confidence map itself has.
 
 - **A cut layer, for stickers whose islands move independently.** A speckle
   applied as a continuous film carries load, and on a soft substrate - elastomer,

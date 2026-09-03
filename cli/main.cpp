@@ -141,6 +141,52 @@ int main(int argc, char *argv[]) {
                   << "  and correlation works over subsets, not single pixels, so a high\n"
                   << "  share here is expected rather than a fault.\n";
 
+        // --- 6. The same physics, as DIC's own figure ------------------
+        // ⚑ The number above is dimensionless and its threshold is invented by
+        // its caller, so it cannot be compared with anything -- least of all
+        // with what the pattern achieves once fabricated. This one can: it is
+        // sigma, a displacement noise floor in PIXELS, by the same definition
+        // SurView measures after a run. Design-time and measured, same units,
+        // side by side.
+        const int subsetRadiusPx = 16;
+        const patternfab::NoiseFloorMap floorMap =
+            patternfab::computeNoiseFloorMap(pattern, noise, subsetRadiusPx);
+        const patternfab::NoiseFloorSummary floor =
+            patternfab::summariseNoiseFloor(floorMap);
+
+        std::cout << "\nDisplacement noise floor at a " << subsetRadiusPx
+                  << " px subset radius (DIC's sigma, lower is better):\n";
+        if (floor.establishedCount == 0) {
+            // ⚑ Not a zero and not a shrug. Nowhere on this pattern has
+            // gradient in BOTH directions, so it cannot measure displacement at
+            // all -- which a gradient-magnitude score cannot tell you.
+            std::cout << "  none established anywhere. This pattern has no\n"
+                      << "  gradient in one of the two directions, so it cannot\n"
+                      << "  resolve displacement in that direction at all.\n";
+        } else {
+            // ⚑ A RANGE TO THE 95th PERCENTILE, and deliberately NOT the
+            // worst value. A subset lying almost entirely on blank background
+            // still has a trace of gradient, so it is established and its floor
+            // is enormous -- on this sample the worst is about 945000 px, which
+            // is arithmetic rather than information. SurView made exactly this
+            // mistake once on a measured field, where one such point made an
+            // excellent run report "at worst one part in 3".
+            //
+            // The share that established anything is the other half of the
+            // story, and the more useful half for a designer: it says how much
+            // of the specimen this pattern can measure at all.
+            std::cout << "  " << floor.bestPx << " to " << floor.typicalPx
+                      << " px for 95% of them\n"
+                      << "  established at    " << floor.establishedCount << " of "
+                      << floor.totalCount << " points ("
+                      << (100.0 * floor.establishedCount / floor.totalCount)
+                      << "% of the specimen)\n"
+                      << "\n  An UPPER BOUND, not a prediction. This is an ideal\n"
+                      << "  rendering; real ink, a real substrate and real focus all\n"
+                      << "  make it worse. Measure the fabricated pattern and the\n"
+                      << "  difference is the fabrication and imaging penalty.\n";
+        }
+
         std::cout << "\nPipeline OK.\n";
         return 0;
     } catch (const std::exception &e) {
