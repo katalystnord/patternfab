@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
         // sigma, a displacement noise floor in PIXELS, by the same definition
         // SurView measures after a run. Design-time and measured, same units,
         // side by side.
-        const int subsetRadiusPx = 16;
+        const int subsetRadiusPx = patternfab::kSubsetRadiusPx;
         const patternfab::NoiseFloorMap floorMap =
             patternfab::computeNoiseFloorMap(pattern, noise, subsetRadiusPx);
         const patternfab::NoiseFloorSummary floor =

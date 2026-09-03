@@ -41,6 +41,12 @@ private:
     // the current manufacturing constraints. Called on load and whenever a
     // constraint spin box changes.
     void refreshReport();
+
+    // What the pattern can MEASURE, as opposed to whether it can be made.
+    // Its own panel rather than more text in the constraint report: they
+    // answer different questions, and a reader after one should not have to
+    // scroll past the other to reach it.
+    void refreshMeasurement();
     // Regenerate the 2D preview SVG (raw design geometry) and hand it to the
     // view; marks the 3D relief preview stale (rebuilt lazily when shown).
     void refreshPreview();
@@ -82,6 +88,7 @@ private:
     QDoubleSpinBox *bridgeSpin_ = nullptr;
 
     QPlainTextEdit *reportView_ = nullptr;
+    QPlainTextEdit *measurementView_ = nullptr;
 
     QDoubleSpinBox *dpiSpin_ = nullptr;
     QDoubleSpinBox *baseThicknessSpin_ = nullptr;

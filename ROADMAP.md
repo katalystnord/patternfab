@@ -13,7 +13,10 @@ apply manufacturing constraints (minimum feature size, bleed, bridging, and a
 tiling check that refuses to inject periodicity), and write every export -
 SVG and DXF for a laser-cut stencil, PNG at a caller-supplied DPI for
 direct-write or decal transfer, and STL relief for a 3D-printed stamp or mould.
-A GUI with 2D stencil and VTK 3D relief previews.
+A GUI with 2D stencil and VTK 3D relief previews, which answers the two
+questions separately and by name: a constraint report for whether the pattern
+can be MADE, and a "What it can measure" panel for whether it will measure
+anything.
 
 And two design-time uncertainty figures from the same rendering: a per-pixel
 confidence map, and **the displacement noise floor in pixels** - DIC's sigma,
@@ -23,11 +26,6 @@ prediction: the difference between the two is the fabrication and imaging
 penalty.
 
 ## Next
-
-- **Surface the noise floor in the GUI.** `computeNoiseFloorMap()` and
-  `summariseNoiseFloor()` are in `patternfab-core` and reported by
-  `patternfab-cli`; the window still shows only the dimensionless confidence
-  map. Same gap the confidence map itself has.
 
 - **A cut layer, for stickers whose islands move independently.** A speckle
   applied as a continuous film carries load, and on a soft substrate - elastomer,

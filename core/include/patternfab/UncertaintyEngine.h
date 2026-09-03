@@ -2,6 +2,7 @@
 
 #include "patternfab/Pattern.h"
 
+#include <string>
 #include <vector>
 
 namespace patternfab {
@@ -75,6 +76,11 @@ double lowConfidenceFraction(const UncertaintyMap &map, double minConfidence);
 // nobody currently measures. Reporting this as what a run WILL achieve would be
 // wrong on the first specimen.
 
+// The subset radius the tools report at when nobody chooses one. A default,
+// not a recommendation: the right radius is the one the measurement will
+// actually be run at, which is why every figure carries the radius it used.
+inline constexpr int kSubsetRadiusPx = 16;
+
 struct NoiseFloorMap {
     int widthPx = 0;
     int heightPx = 0;
@@ -119,5 +125,17 @@ struct NoiseFloorSummary {
 };
 
 NoiseFloorSummary summariseNoiseFloor(const NoiseFloorMap &map);
+
+// The summary as a reader should meet it, qualifications included.
+//
+// In core rather than in a widget for the reason every other rule here is: it
+// is where a test can reach it. Three qualifications are load-bearing and none
+// of them is optional. The subset radius, because the same pattern gives a
+// different figure at another one. That it is a BOUND. And which direction is
+// better -- because the confidence map sits beside it on the same screen and
+// reads the OTHER way, and a reader carrying the habit across reads a poor
+// pattern as a good one.
+std::string describeNoiseFloor(const NoiseFloorMap &map,
+                               const NoiseFloorSummary &summary);
 
 } // namespace patternfab

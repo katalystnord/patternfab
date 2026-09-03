@@ -1,5 +1,7 @@
 #include "MainWindow.h"
 
+#include <patternfab/UncertaintyEngine.h>
+
 #include "PreviewWidget.h"
 #include "ReliefPreviewWidget.h"
 
@@ -125,6 +127,19 @@ void MainWindow::buildUi() {
     reportView_->setMaximumHeight(124);
     reportLayout->addWidget(reportView_);
     col->addWidget(reportBox);
+
+    // What the pattern can measure. Beside the constraint report rather than
+    // inside it, because the two answer different questions -- can this be
+    // made, and will it measure anything -- and naming both on screen is most
+    // of what tells a reader the second question exists at all.
+    auto *measurementBox = new QGroupBox(tr("What it can measure"));
+    auto *measurementLayout = new QVBoxLayout(measurementBox);
+    measurementView_ = new QPlainTextEdit;
+    measurementView_->setReadOnly(true);
+    measurementView_->setMinimumHeight(150);
+    measurementView_->setMaximumHeight(210);
+    measurementLayout->addWidget(measurementView_);
+    col->addWidget(measurementBox);
 
     // Export.
     auto *exportBox = new QGroupBox(tr("Export"));
@@ -281,6 +296,46 @@ void MainWindow::refreshReport() {
                     .arg(QString::fromStdString(v.message));
     }
     reportView_->setPlainText(text);
+    refreshMeasurement();
+}
+
+void MainWindow::refreshMeasurement() {
+    if (!pattern_) {
+        return;
+    }
+
+    // ⚑ The wording is core's, not composed here. Both figures need
+    // qualifications to be read correctly -- the subset radius, that the floor
+    // is a bound, and which direction is better -- and a widget is where such
+    // sentences quietly rot. core/UncertaintyEngine.h owns them and tests them.
+    patternfab::SensorNoiseProfile noise;
+    noise.S = 1.2e-4;
+    noise.O = 4.0e-6;
+
+    QString text;
+    try {
+        const patternfab::NoiseFloorMap floorMap =
+            patternfab::computeNoiseFloorMap(*pattern_, noise, patternfab::kSubsetRadiusPx);
+        text += QString::fromStdString(patternfab::describeNoiseFloor(
+            floorMap, patternfab::summariseNoiseFloor(floorMap)));
+
+        const patternfab::UncertaintyMap confidence =
+            patternfab::computeUncertaintyMap(*pattern_, noise);
+        const double flat = patternfab::lowConfidenceFraction(confidence, 1.0);
+        // ⚑ Named for what it is, because the obvious reading is wrong: most
+        // pixels of ANY speckle pattern are flat, inside a dot or in the
+        // background, and correlation works over subsets rather than single
+        // pixels. A high share here is expected and is not a failing grade.
+        text += tr("\nPer-pixel confidence (gradient over sensor noise; higher "
+                   "is better, the other way round from the figure above): %1% "
+                   "of pixels carry no gradient, which is normal for any "
+                   "speckle and is not a fault.\n")
+                    .arg(flat * 100.0, 0, 'f', 1);
+    } catch (const std::exception &e) {
+        text = tr("Unavailable: %1\n").arg(QString::fromLatin1(e.what()));
+    }
+
+    measurementView_->setPlainText(text);
 }
 
 void MainWindow::refreshPreview() {

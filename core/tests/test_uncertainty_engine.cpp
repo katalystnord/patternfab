@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <string>
 #include <iostream>
 
 namespace {
@@ -336,6 +337,54 @@ void testASubsetThatWouldRunOffTheImageIsRefused() {
           "the border must not be establishing anything");
 }
 
+void testTheDescriptionSaysWhatTheNumberIsAndIsNot() {
+    // The wording lives in core rather than in the widget, for the reason every
+    // other rule here does: it is where a test can reach it. A number on a
+    // screen is trusted, and this one needs three qualifications to be read
+    // correctly at all.
+    const auto map = patternfab::computeNoiseFloorMap(
+        makeSpecklePattern(), constantNoise(0.01), 16);
+    const std::string text =
+        patternfab::describeNoiseFloor(map, patternfab::summariseNoiseFloor(map));
+
+    const auto says = [&text](const char *phrase) {
+        return text.find(phrase) != std::string::npos;
+    };
+
+    check(says("16"), "the description must state the subset radius it used; "
+                      "the same pattern gives a different figure at another one");
+    check(says("bound"), "it must say it is a bound rather than a prediction");
+    // ⚑ Two numbers on one screen reading opposite ways is a trap SurView
+    // already documented: the confidence map beside it is HIGHER-is-better,
+    // and this one is lower. A reader carrying the habit across from one to
+    // the other reads a bad pattern as a good one.
+    check(says("lower is better"), "it must say which direction is better, "
+                                   "because the figure beside it reads the other way");
+
+    // ⚑ And it must NOT quote the worst value. On a real pattern that is a
+    // subset lying almost entirely on blank background, about 945000 px, which
+    // is arithmetic rather than information and describes a good pattern as a
+    // disaster.
+    check(!says("945"), "the description must not headline the worst subset");
+}
+
+void testTheDescriptionExplainsAnEmptyResultRatherThanShowingABlank() {
+    // ⚑ The case that would otherwise reach a user as an empty box. A pattern
+    // with no gradient in one direction establishes nothing anywhere, and
+    // "nothing" needs a reason attached or it reads as a broken tool rather
+    // than as a verdict on the pattern.
+    const auto map = patternfab::computeNoiseFloorMap(
+        makeStripePattern(true), constantNoise(0.01), 16);
+    const auto summary = patternfab::summariseNoiseFloor(map);
+    check(summary.establishedCount == 0, "the fixture establishes nothing");
+
+    const std::string text = patternfab::describeNoiseFloor(map, summary);
+    check(!text.empty(), "an empty result must still say something");
+    check(text.find("direction") != std::string::npos,
+          "it must say WHY nothing was established, which is that the pattern "
+          "has no structure in one direction");
+}
+
 void testTheSubsetRadiusTravelsWithTheFigure() {
     // A noise floor without the subset it was computed at is not a number
     // anybody can use, so the map carries it rather than leaving a caller to
@@ -358,6 +407,8 @@ int main() {
     testFeaturelessAreaEstablishesNothing();
     testSummaryUsesAPercentileNotTheExtreme();
     testASubsetThatWouldRunOffTheImageIsRefused();
+    testTheDescriptionSaysWhatTheNumberIsAndIsNot();
+    testTheDescriptionExplainsAnEmptyResultRatherThanShowingABlank();
     testTheSubsetRadiusTravelsWithTheFigure();
 
     if (failures == 0) {

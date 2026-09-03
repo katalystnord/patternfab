@@ -8,7 +8,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
 #include <limits>
+#include <sstream>
 #include <stdexcept>
 
 namespace patternfab {
@@ -234,6 +236,47 @@ NoiseFloorSummary summariseNoiseFloor(const NoiseFloorMap &map) {
         std::llround(0.95 * static_cast<double>(established.size() - 1)));
     summary.typicalPx = established[index];
     return summary;
+}
+
+std::string describeNoiseFloor(const NoiseFloorMap &map, const NoiseFloorSummary &summary) {
+    const auto number = [](double value, int digits) {
+        std::ostringstream out;
+        out << std::setprecision(digits) << value;
+        return out.str();
+    };
+
+    std::ostringstream text;
+    text << "Displacement noise floor at a " << map.subsetRadiusPx
+         << " px subset radius (DIC's sigma; lower is better, unlike the "
+            "confidence map).\n";
+
+    if (summary.establishedCount == 0) {
+        // ⚑ Never a blank. Nothing established is a VERDICT on the pattern, not
+        // an absent result, and without the reason attached it reads as a
+        // broken tool instead.
+        text << "\nNone established anywhere. This pattern has no intensity "
+                "gradient in one of the two directions, so it cannot resolve "
+                "displacement in that direction at all, however strong it looks "
+                "in the other.\n";
+        return text.str();
+    }
+
+    const double share = 100.0 * static_cast<double>(summary.establishedCount)
+                         / static_cast<double>(summary.totalCount);
+
+    text << "\n  " << number(summary.bestPx, 3) << " to "
+         << number(summary.typicalPx, 3) << " px for 95% of the points where a "
+         << "whole subset fits\n"
+         << "  established over " << number(share, 3) << "% of the specimen ("
+         << summary.establishedCount << " of " << summary.totalCount << ")\n";
+
+    // ⚑ Stated as a bound every time it is shown, not once in documentation.
+    text << "\nAn upper bound, not a prediction: this is an ideal rendering, and "
+            "real ink on a real substrate photographed slightly out of focus "
+            "will do worse. Measure the fabricated pattern and the difference "
+            "is the fabrication and imaging penalty.\n";
+
+    return text.str();
 }
 
 } // namespace patternfab
