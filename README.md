@@ -101,6 +101,9 @@ in the hook and as CI's first job. Use `--` in a C++ comment and `-` in text a
 person reads. See [CLAUDE.md](CLAUDE.md) for why it is a check rather than a
 note.
 
+Open items live in [ROADMAP.md](ROADMAP.md), which is the one place they live,
+so that nothing has to be carried around as a caveat.
+
 ## Sister tool
 
 PatternFab and [SurView DIC](https://github.com/katalystnord/SurView) are two
