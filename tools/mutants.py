@@ -178,7 +178,6 @@ def main():
                          "the machine too -- a mutation run is sustained full "
                          "load and a poor neighbour at its natural width.")
     ap.add_argument("--json", help="write the full result to this file")
-    ap.add_argument("--json", help="write the full result to this file")
     args = ap.parse_args()
 
     root = REPO
