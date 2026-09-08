@@ -1,5 +1,7 @@
 #include "patternfab/UncertaintyEngine.h"
 
+#include "IntegralImage.h"
+
 #include "PrimitiveDrawing.h"
 
 #include <QColor>
@@ -88,30 +90,6 @@ RenderedFields renderFields(const Pattern &pattern, const SensorNoiseProfile &no
     }
 
     return fields;
-}
-
-// Summed-area table, so a subset's total is four lookups rather than a loop
-// over its pixels. Without it the map is O(width * height * radius^2), which on
-// a realistic pattern at a realistic subset size is minutes rather than
-// milliseconds.
-std::vector<double> integralImage(const std::vector<double> &field, int w, int h) {
-    std::vector<double> sum(static_cast<std::size_t>(w + 1) * (h + 1), 0.0);
-    for (int y = 0; y < h; ++y) {
-        double rowRunning = 0.0;
-        for (int x = 0; x < w; ++x) {
-            rowRunning += field[static_cast<std::size_t>(y) * w + x];
-            sum[static_cast<std::size_t>(y + 1) * (w + 1) + (x + 1)] =
-                sum[static_cast<std::size_t>(y) * (w + 1) + (x + 1)] + rowRunning;
-        }
-    }
-    return sum;
-}
-
-double boxSum(const std::vector<double> &integral, int w, int x0, int y0, int x1, int y1) {
-    const auto at = [&](int x, int y) {
-        return integral[static_cast<std::size_t>(y) * (w + 1) + x];
-    };
-    return at(x1 + 1, y1 + 1) - at(x0, y1 + 1) - at(x1 + 1, y0) + at(x0, y0);
 }
 
 } // namespace

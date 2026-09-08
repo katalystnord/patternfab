@@ -192,7 +192,13 @@ def main():
     build = REPO / "build-mutants"
     configure = ["cmake", "-S", str(REPO), "-B", str(build), "-G", "Ninja",
                  "-DCMAKE_BUILD_TYPE=Release", "-DPATTERNFAB_BUILD_GUI=OFF"]
-    default_files = sorted((REPO / "core" / "src").glob("*.cpp"))
+    # ⚑ Headers as well as sources. IntegralImage.h holds real arithmetic, and
+    # globbing *.cpp alone would mean that moving code into a header -- which is
+    # exactly what making it testable required -- silently removed it from the
+    # sweep and improved the score for no reason at all.
+    default_files = sorted((REPO / "core" / "src").glob("*.cpp")) \
+        + sorted((REPO / "core" / "src").glob("*.h")) \
+        + sorted((REPO / "core" / "include" / "patternfab").glob("*.h"))
     # The whole suite runs in well under a second, so there is nothing to
     # exclude and no fast/slow split to explain.
     test_filter = []

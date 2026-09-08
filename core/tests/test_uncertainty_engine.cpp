@@ -394,6 +394,48 @@ void testTheSubsetRadiusTravelsWithTheFigure() {
     check(map.subsetRadiusPx == 12, "the map states the subset radius it used");
 }
 
+
+void the_typical_figure_is_the_ninety_fifth_percentile_exactly() {
+    // ⚑ Written against a map built by hand rather than rendered, because the
+    // index arithmetic is what is under test and a rendered pattern cannot pin
+    // it: `0.95 * (n - 1)` off by one is invisible in a field of similar
+    // values, which is every real one. A hundred distinct values make it exact.
+    //
+    // Survived the first mutation sweep three ways -- `- 1` to `- 0`, to `- 2`,
+    // and to `+ 1` -- with nothing to notice any of them.
+    patternfab::NoiseFloorMap map;
+    map.widthPx = 10;
+    map.heightPx = 10;
+    map.subsetRadiusPx = 16;
+    map.sigmaPx.resize(100);
+    for (int i = 0; i < 100; ++i) {
+        map.sigmaPx[static_cast<std::size_t>(i)] = i + 1.0;
+    }
+
+    const auto summary = patternfab::summariseNoiseFloor(map);
+    check(summary.establishedCount == 100, "every value counted");
+    check(summary.bestPx == 1.0, "the best figure is the smallest");
+    check(summary.worstPx == 100.0, "the worst figure is the largest");
+    // llround(0.95 * 99) = 94, and the 95th of a hundred sorted values.
+    check(summary.typicalPx == 95.0,
+          "the typical figure is the value 95 per cent of established points beat");
+}
+
+void a_confidence_sitting_exactly_on_the_threshold_is_not_below_it() {
+    // The boundary, which is the only place the comparison can be wrong and the
+    // only place no rendered pattern will reliably land. A pixel AT the level
+    // asked for meets it; counting it as low makes the share depend on the last
+    // bit of a double.
+    patternfab::UncertaintyMap map;
+    map.widthPx = 2;
+    map.heightPx = 1;
+    map.confidence = {1.0, 2.0};
+
+    check(patternfab::lowConfidenceFraction(map, 1.0) == 0.0,
+          "a confidence equal to the threshold is not below it");
+    check(patternfab::lowConfidenceFraction(map, 2.0) == 0.5,
+          "a confidence under the threshold is below it");
+}
 } // namespace
 
 int main() {
@@ -410,6 +452,8 @@ int main() {
     testTheDescriptionSaysWhatTheNumberIsAndIsNot();
     testTheDescriptionExplainsAnEmptyResultRatherThanShowingABlank();
     testTheSubsetRadiusTravelsWithTheFigure();
+    the_typical_figure_is_the_ninety_fifth_percentile_exactly();
+    a_confidence_sitting_exactly_on_the_threshold_is_not_below_it();
 
     if (failures == 0) {
         std::cout << "OK: all patternfab-core uncertainty engine tests passed" << std::endl;

@@ -69,3 +69,15 @@ target_link_libraries(patternfab-core-tests-noise-floor-image PRIVATE
     patternfab-core
 )
 add_test(NAME patternfab-core-tests-noise-floor-image COMMAND patternfab-core-tests-noise-floor-image)
+
+add_executable(patternfab-core-tests-integral-image test_integral_image.cpp)
+target_link_libraries(patternfab-core-tests-integral-image PRIVATE
+    patternfab-core
+)
+# core/src is not a public include directory: this header is internal to core,
+# and the test reaches it directly rather than the arithmetic being promoted to
+# the public API just to be testable.
+target_include_directories(patternfab-core-tests-integral-image PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src
+)
+add_test(NAME patternfab-core-tests-integral-image COMMAND patternfab-core-tests-integral-image)
