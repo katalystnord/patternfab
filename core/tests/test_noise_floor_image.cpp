@@ -28,6 +28,19 @@
 // One thing these cases do NOT catch, stated because a green suite must not be
 // read as more than it is: they say nothing about whether the ramp's colours
 // are distinguishable to a reader. That was checked by looking at the window.
+//
+// Two mutants in this file survive on purpose, recorded so that nobody hunts
+// them twice (measured 2026-09-09: 36 of 38 viable mutants killed):
+//
+//   noiseFloorColour, `t < 1.0` -> `t <= 1.0`   EQUIVALENT. At t exactly 1 the
+//     two readings are the upper stop either way -- mixed from below at
+//     local 1, or from above at local 0. There is no input that tells them
+//     apart, so there is no case to write.
+//   drawNoiseFloor, `i < size()` -> `i <= size()`  A read one past the end of
+//     both vectors. It is a real defect and no assertion can see it, because
+//     the value read is whatever happens to sit there and the picture is
+//     unchanged. It wants the suite built under a sanitizer, which is on the
+//     roadmap rather than pretended at here.
 
 #include <patternfab/NoiseFloorImage.h>
 
@@ -182,6 +195,151 @@ void the_two_ends_of_the_ramp_are_different_colours() {
           "neither end of the ramp collides with the colour meaning nothing was established");
 }
 
+
+bool sameColour(const patternfab::Rgb8 &a, const patternfab::Rgb8 &b) {
+    return a.r == b.r && a.g == b.g && a.b == b.b;
+}
+
+// Everything below this line was written to kill mutants that survived the
+// cases above: the suite ran this code and checked almost nothing about it.
+// 26 mutants in this file survived the first sweep, and the two worth naming
+// are an out-of-bounds read (kNoiseFloorRampStops[lower + 1] with lower left
+// free to reach 2) and an interpolation that could run backwards, both of
+// which the end-point checks above are blind to by construction.
+
+void the_ramp_passes_through_its_stops_and_not_past_them() {
+    check(sameColour(patternfab::noiseFloorColour(0.0), patternfab::kNoiseFloorRampStops[0]),
+          "the good end of the ramp is the first stop");
+    check(sameColour(patternfab::noiseFloorColour(0.5), patternfab::kNoiseFloorRampStops[1]),
+          "the middle of the ramp is the middle stop");
+    check(sameColour(patternfab::noiseFloorColour(1.0), patternfab::kNoiseFloorRampStops[2]),
+          "the bad end of the ramp is the last stop, and reading one further would be off the end");
+
+    // Interpolated, not stepped: a quarter of the way along is between the
+    // first two stops and equal to neither.
+    const patternfab::Rgb8 quarter = patternfab::noiseFloorColour(0.25);
+    check(!sameColour(quarter, patternfab::kNoiseFloorRampStops[0])
+              && !sameColour(quarter, patternfab::kNoiseFloorRampStops[1]),
+          "a position between two stops takes a colour between them");
+    check(quarter.g > patternfab::kNoiseFloorRampStops[0].g
+              && quarter.g < patternfab::kNoiseFloorRampStops[1].g,
+          "the interpolation runs from the lower stop towards the upper one, not away from it");
+
+    // Clamped, so a position outside [0, 1] is still a colour on the ramp.
+    check(sameColour(patternfab::noiseFloorColour(-3.0), patternfab::kNoiseFloorRampStops[0])
+              && sameColour(patternfab::noiseFloorColour(4.0),
+                            patternfab::kNoiseFloorRampStops[2]),
+          "a position outside the ramp is clamped to its ends");
+}
+
+void nothing_beyond_the_scale_means_no_greater_than_on_its_top_label() {
+    // ⚑ The worst point sitting exactly ON the scale's top is not beyond it.
+    // Declared anyway, every scale would carry a ">" and the mark would stop
+    // meaning anything.
+    const patternfab::NoiseFloorScale scale =
+        patternfab::scaleNoiseFloor(summaryOf(0.01, 1.0, 1.0, 900, 1000));
+    check(!scale.highIsExceeded,
+          "a worst point equal to the scale's top does not exceed it");
+
+    const std::vector<std::string> labels = patternfab::noiseFloorScaleLabels(scale, 4);
+    for (const std::string &label : labels) {
+        check(label.find(">") == std::string::npos,
+              "no label claims values beyond a scale nothing exceeds");
+    }
+}
+
+void only_the_top_label_says_the_worst_lies_beyond_it() {
+    const patternfab::NoiseFloorScale scale =
+        patternfab::scaleNoiseFloor(summaryOf(0.01, 1.0, 945000.0, 900, 1000));
+    const std::vector<std::string> labels = patternfab::noiseFloorScaleLabels(scale, 4);
+    for (std::size_t i = 0; i + 1 < labels.size(); ++i) {
+        check(labels[i].find(">") == std::string::npos,
+              "a label below the top of the scale is an exact value, not a bound");
+    }
+    check(labels.back().find(">") != std::string::npos,
+          "the top label is the one that carries the bound");
+}
+
+void the_labels_span_the_scale_they_belong_to() {
+    const patternfab::NoiseFloorScale scale =
+        patternfab::scaleNoiseFloor(summaryOf(0.01, 100.0, 945000.0, 900, 1000));
+    const std::vector<std::string> labels = patternfab::noiseFloorScaleLabels(scale, 5);
+    check(labels.size() == 5, "five ticks give five labels");
+    check(labels.front().find("0.01") != std::string::npos,
+          "the first label is the scale's own low end");
+    check(labels.back().find("100") != std::string::npos,
+          "the last label is the scale's own high end, not somewhere short of it");
+    // Logarithmic, so the middle of five ticks over 0.01 to 100 is 1.
+    check(labels[2].find("1 px") != std::string::npos,
+          "the ticks are spaced on the ramp the colours use, not on a linear axis");
+
+    const std::vector<std::string> one = patternfab::noiseFloorScaleLabels(scale, 1);
+    check(one.size() == 1, "a single tick is a single label, not none and not a division by zero");
+}
+
+void a_floor_of_exactly_zero_is_an_absence_not_the_finest_reading() {
+    // ⚑ Strictly positive, not merely non-negative. A noise floor of zero
+    // claims a perfect measurement, which is not reachable, so a zero is a
+    // value that was never established -- the same rule SurView applies to
+    // sigma and beta, and it reads as the FLATTERING answer if it slips
+    // through, since zero paints at the good end of the ramp.
+    const patternfab::NoiseFloorScale scale =
+        patternfab::scaleNoiseFloor(summaryOf(0.01, 1.0, 945000.0, 900, 1000));
+    check(std::isnan(patternfab::noiseFloorRampPosition(scale, 0.0)),
+          "a floor of exactly zero has no position on the ramp");
+    check(std::isnan(patternfab::noiseFloorRampPosition(scale, -1.0)),
+          "a negative floor has no position on the ramp");
+}
+
+void a_summary_that_established_nothing_is_unusable_whatever_else_it_says() {
+    // The count is what decides it. A summary carrying a plausible best figure
+    // with no established points behind it is not a scale with one good pixel
+    // on it; it is nothing to draw.
+    const patternfab::NoiseFloorScale scale =
+        patternfab::scaleNoiseFloor(summaryOf(0.5, 2.0, 3.0, 0, 1000));
+    check(!scale.usable,
+          "no established points means no scale, whatever figures accompany them");
+}
+
+void an_unusable_scale_answers_nothing_rather_than_something() {
+    // Every guard here is an OR of independent refusals, and each has to be
+    // able to refuse on its own: turned into an AND, an unusable scale with a
+    // perfectly ordinary sigma in hand starts answering questions about it.
+    const patternfab::NoiseFloorScale nothing =
+        patternfab::scaleNoiseFloor(summaryOf(0.0, 0.0, 0.0, 0, 1000));
+
+    check(std::isnan(patternfab::noiseFloorRampPosition(nothing, 0.5)),
+          "a scale with nothing on it gives no position to a perfectly good figure");
+    check(patternfab::noiseFloorScaleLabels(nothing, 4).empty(),
+          "a scale with nothing on it draws no labels");
+}
+
+void a_best_figure_of_exactly_zero_is_not_a_scale_to_draw() {
+    // ⚑ The same strictly-positive rule as the ramp position, one level up. A
+    // best of exactly zero is a floor that was never established, so a summary
+    // reporting one has nothing to anchor the good end of its scale to.
+    const patternfab::NoiseFloorScale scale =
+        patternfab::scaleNoiseFloor(summaryOf(0.0, 1.0, 2.0, 900, 1000));
+    check(!scale.usable, "a best figure of exactly zero does not make a usable scale");
+}
+
+void a_pattern_of_one_single_value_is_all_at_the_good_end() {
+    // Best and typical coincide on a pattern uniform enough to have one figure.
+    // That is a scale with no extent, not a scale to divide by: every point is
+    // the best point, and there is one label rather than a row of identical
+    // ones.
+    const patternfab::NoiseFloorScale scale =
+        patternfab::scaleNoiseFloor(summaryOf(0.02, 0.02, 0.02, 900, 1000));
+    check(scale.usable, "one repeated figure is still a figure");
+
+    const double position = patternfab::noiseFloorRampPosition(scale, 0.02);
+    check(!std::isnan(position) && std::abs(position) < 1e-9,
+          "with no extent to the scale every point sits at its good end");
+
+    const std::vector<std::string> labels = patternfab::noiseFloorScaleLabels(scale, 4);
+    check(labels.size() == 1 && labels.front().find("0.02") != std::string::npos,
+          "a scale of one value carries that value once, not four ticks of the same number");
+}
 } // namespace
 
 int main() {
@@ -191,6 +349,15 @@ int main() {
     the_scale_labels_carry_significant_digits_not_decimal_places();
     a_pattern_that_established_nothing_has_no_picture_and_says_why();
     the_two_ends_of_the_ramp_are_different_colours();
+    the_ramp_passes_through_its_stops_and_not_past_them();
+    nothing_beyond_the_scale_means_no_greater_than_on_its_top_label();
+    only_the_top_label_says_the_worst_lies_beyond_it();
+    the_labels_span_the_scale_they_belong_to();
+    a_floor_of_exactly_zero_is_an_absence_not_the_finest_reading();
+    a_summary_that_established_nothing_is_unusable_whatever_else_it_says();
+    an_unusable_scale_answers_nothing_rather_than_something();
+    a_best_figure_of_exactly_zero_is_not_a_scale_to_draw();
+    a_pattern_of_one_single_value_is_all_at_the_good_end();
 
     if (failures == 0) {
         std::cout << "test_noise_floor_image: all cases passed" << std::endl;

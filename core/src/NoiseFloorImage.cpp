@@ -10,16 +10,6 @@ namespace patternfab {
 
 namespace {
 
-// Three stops, dark and saturated at the good end, pale and warm at the bad
-// one. A single ordered progression rather than a red/green pair: the reader's
-// question here is "how much worse than the best place", which is a magnitude,
-// and a two-hue scale invents a threshold between them that nothing supports.
-constexpr Rgb8 kStops[] = {
-    {0x0b, 0x3d, 0x4f},
-    {0x2a, 0xa1, 0x98},
-    {0xf2, 0xe3, 0x7a},
-};
-
 unsigned char mix(unsigned char a, unsigned char b, double t) {
     return static_cast<unsigned char>(std::lround(a + (b - a) * t));
 }
@@ -62,10 +52,13 @@ double noiseFloorRampPosition(const NoiseFloorScale &scale, double sigmaPx) {
 
 Rgb8 noiseFloorColour(double position) {
     const double t = std::clamp(position, 0.0, 1.0) * 2.0;
+    // The last stop is reached by the upper segment at t == 2, so the segment
+    // index stops at 1: reading kNoiseFloorRampStops[lower + 1] with lower == 2
+    // would be off the end of the array.
     const int lower = t < 1.0 ? 0 : 1;
     const double local = t - lower;
-    const Rgb8 &a = kStops[lower];
-    const Rgb8 &b = kStops[lower + 1];
+    const Rgb8 &a = kNoiseFloorRampStops[lower];
+    const Rgb8 &b = kNoiseFloorRampStops[lower + 1];
     return Rgb8{mix(a.r, b.r, local), mix(a.g, b.g, local), mix(a.b, b.b, local)};
 }
 

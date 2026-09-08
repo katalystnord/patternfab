@@ -59,7 +59,21 @@ NoiseFloorScale scaleNoiseFloor(const NoiseFloorSummary &summary);
 // the scale and the picture answers nothing.
 double noiseFloorRampPosition(const NoiseFloorScale &scale, double sigmaPx);
 
-// The ramp itself, good (low sigma) to bad. Position is clamped to [0, 1].
+// The ramp's three stops, dark and saturated at the good end, pale and warm at
+// the bad one. A single ordered progression rather than a red/green pair: the
+// question here is "how much worse than the best place", which is a magnitude,
+// and a two-hue scale invents a threshold between them that nothing supports.
+//
+// Public so that a test can name the colour it expects instead of repeating the
+// literals, which is how a test comes to agree with a broken ramp.
+inline constexpr Rgb8 kNoiseFloorRampStops[3] = {
+    {0x0b, 0x3d, 0x4f},
+    {0x2a, 0xa1, 0x98},
+    {0xf2, 0xe3, 0x7a},
+};
+
+// The ramp itself, good (low sigma) to bad. Position is clamped to [0, 1], and
+// 0, 0.5 and 1 land exactly on the three stops.
 Rgb8 noiseFloorColour(double position);
 
 struct NoiseFloorPicture {

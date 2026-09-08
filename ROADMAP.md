@@ -155,7 +155,14 @@ rather than at the worst, which is one subset over blank ground.
 
 ## Test and tooling debt
 
-- **Mutation testing and coverage** are neither run nor tracked. SurView has
-  `tools/mutants.py`; nothing here has an equivalent, so the eight passing
-  executables are a claim about what the suite EXECUTES rather than about what
-  it checks.
+- **Coverage** is neither measured nor tracked.
+- **Mutation testing** now exists (`tools/mutants.py`, ported from SurView) and
+  the first full sweep, 2026-09-09, scored **54.2%**: of 325 viable mutants,
+  149 changed the meaning of a line and no test noticed. That is the real state
+  of the suite behind eight green executables, and the survivors are the work
+  list. `NoiseFloorImage.cpp` has since been taken from 26 survivors to 2.
+- **A sanitizer build.** A mutant that reads one past the end of a vector
+  cannot be caught by any assertion -- the value read is whatever sits there
+  and nothing downstream changes. `-fsanitize=address,undefined` over the
+  existing suite is what closes that class, and the mutation run is what showed
+  it was open.
