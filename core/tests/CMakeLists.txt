@@ -90,3 +90,12 @@ target_include_directories(patternfab-core-tests-relief-field PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../src
 )
 add_test(NAME patternfab-core-tests-relief-field COMMAND patternfab-core-tests-relief-field)
+
+add_executable(patternfab-core-tests-primitive-geometry test_primitive_geometry.cpp)
+target_link_libraries(patternfab-core-tests-primitive-geometry PRIVATE
+    patternfab-core
+)
+target_include_directories(patternfab-core-tests-primitive-geometry PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src
+)
+add_test(NAME patternfab-core-tests-primitive-geometry COMMAND patternfab-core-tests-primitive-geometry)
