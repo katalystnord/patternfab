@@ -63,3 +63,9 @@ vtk_module_autoinit(
     MODULES ${VTK_LIBRARIES}
 )
 add_test(NAME patternfab-core-tests-pipeline COMMAND patternfab-core-tests-pipeline)
+
+add_executable(patternfab-core-tests-noise-floor-image test_noise_floor_image.cpp)
+target_link_libraries(patternfab-core-tests-noise-floor-image PRIVATE
+    patternfab-core
+)
+add_test(NAME patternfab-core-tests-noise-floor-image COMMAND patternfab-core-tests-noise-floor-image)

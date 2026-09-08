@@ -25,6 +25,17 @@ measured one can be set side by side. It is an upper bound rather than a
 prediction: the difference between the two is the fabrication and imaging
 penalty.
 
+The noise floor is on screen as a PICTURE as well as a figure, in its own
+preview tab. The summary says how finely the pattern can measure; the picture
+answers the question that follows it, which is where - weakness in a band along
+one edge is a layout problem and weakness scattered evenly is a speckle-size
+one, and no summary distinguishes them. Its rules are the ones this project
+keeps paying for elsewhere: a place that established nothing is grey rather
+than a colour on the ramp, since painted at the good end every hole in the
+pattern would read as its finest ground; the ramp is logarithmic, because the
+floor spans decades; and the scale stops at the figure 95% of points beat
+rather than at the worst, which is one subset over blank ground.
+
 ## Next
 
 - **A cut layer, for stickers whose islands move independently.** A speckle
@@ -144,6 +155,7 @@ penalty.
 
 ## Test and tooling debt
 
-- **The GUI's uncertainty map** is in `patternfab-core` and `patternfab-cli` and
-  is not surfaced in the window.
-- **Mutation testing and coverage** are neither run nor tracked, as in SurView.
+- **Mutation testing and coverage** are neither run nor tracked. SurView has
+  `tools/mutants.py`; nothing here has an equivalent, so the eight passing
+  executables are a claim about what the suite EXECUTES rather than about what
+  it checks.

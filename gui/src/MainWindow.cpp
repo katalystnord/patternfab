@@ -1,7 +1,10 @@
 #include "MainWindow.h"
 
+#include <patternfab/NoiseFloorImage.h>
 #include <patternfab/UncertaintyEngine.h>
 
+#include "NoiseFloorWidget.h"
+#include "NoteLabel.h"
 #include "PreviewWidget.h"
 #include "ReliefPreviewWidget.h"
 
@@ -195,6 +198,25 @@ void MainWindow::buildUi() {
     previewTabs_ = new QTabWidget;
     previewTabs_->addTab(preview_, tr("2D (stencil / direct-write)"));
     previewTabs_->addTab(relief3d_, tr("3D relief (stamp / mold)"));
+    // ⚑ A tab of its own rather than an overlay on the stencil preview. The two
+    // answer different questions -- what will be made, and what it will be able
+    // to measure -- and a reader comparing a weak region against the speckle
+    // that caused it switches between them, which is exactly what tabs are.
+    noiseFloor_ = new NoiseFloorWidget;
+    // ⚑ The caption goes ABOVE the picture, not below it. A word-wrapped label
+    // under a widget that stretches is given one line and painted over, which
+    // SurView's plot panel found the hard way -- and a note that is on screen
+    // and unreadable is worse than one that is absent, because nothing says
+    // there was anything to read. NoteLabel is the other half of that fix.
+    auto *noiseTab = new QWidget;
+    auto *noiseLayout = new QVBoxLayout(noiseTab);
+    noiseLayout->setContentsMargins(10, 8, 10, 0);
+    noiseLayout->setSpacing(6);
+    noiseFloorNote_ = new NoteLabel;
+    noiseFloorNote_->setText(tr("Open a pattern to see where it can measure."));
+    noiseLayout->addWidget(noiseFloorNote_);
+    noiseLayout->addWidget(noiseFloor_, 1);
+    previewTabs_->addTab(noiseTab, tr("Noise floor (where it can measure)"));
     connect(previewTabs_, &QTabWidget::currentChanged, this, &MainWindow::onPreviewTabChanged);
 
     // The relief preview depends on the STL relief parameters; rebuild it when
@@ -316,8 +338,16 @@ void MainWindow::refreshMeasurement() {
     try {
         const patternfab::NoiseFloorMap floorMap =
             patternfab::computeNoiseFloorMap(*pattern_, noise, patternfab::kSubsetRadiusPx);
-        text += QString::fromStdString(patternfab::describeNoiseFloor(
-            floorMap, patternfab::summariseNoiseFloor(floorMap)));
+        const patternfab::NoiseFloorSummary summary = patternfab::summariseNoiseFloor(floorMap);
+        text += QString::fromStdString(patternfab::describeNoiseFloor(floorMap, summary));
+
+        // The same figures as a picture, from the same map -- computed once and
+        // handed to both, so the panel and the picture cannot come to disagree
+        // about the same pattern.
+        const patternfab::NoiseFloorScale scale = patternfab::scaleNoiseFloor(summary);
+        noiseFloor_->showMap(floorMap, scale);
+        noiseFloorNote_->setText(QString::fromStdString(
+            patternfab::noiseFloorScaleCaption(floorMap.subsetRadiusPx, scale)));
 
         const patternfab::UncertaintyMap confidence =
             patternfab::computeUncertaintyMap(*pattern_, noise);
@@ -333,6 +363,8 @@ void MainWindow::refreshMeasurement() {
                     .arg(flat * 100.0, 0, 'f', 1);
     } catch (const std::exception &e) {
         text = tr("Unavailable: %1\n").arg(QString::fromLatin1(e.what()));
+        noiseFloor_->clear();
+        noiseFloorNote_->setText(tr("Unavailable: %1").arg(QString::fromLatin1(e.what())));
     }
 
     measurementView_->setPlainText(text);

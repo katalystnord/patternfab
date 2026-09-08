@@ -6,6 +6,9 @@ add_executable(patternfab-gui
     src/PreviewWidget.h
     src/ReliefPreviewWidget.cpp
     src/ReliefPreviewWidget.h
+    src/NoiseFloorWidget.cpp
+    src/NoiseFloorWidget.h
+    src/NoteLabel.h
 )
 
 target_link_libraries(patternfab-gui PRIVATE

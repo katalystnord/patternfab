@@ -20,6 +20,8 @@ add_library(patternfab-core
     include/patternfab/StlExport.h
     src/UncertaintyEngine.cpp
     include/patternfab/UncertaintyEngine.h
+    src/NoiseFloorImage.cpp
+    include/patternfab/NoiseFloorImage.h
 )
 
 target_include_directories(patternfab-core PUBLIC

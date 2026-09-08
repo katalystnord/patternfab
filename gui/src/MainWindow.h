@@ -10,6 +10,8 @@
 #include <optional>
 #include <string>
 
+class NoiseFloorWidget;
+class NoteLabel;
 class PreviewWidget;
 class ReliefPreviewWidget;
 class QDoubleSpinBox;
@@ -76,6 +78,8 @@ private:
     QTabWidget *previewTabs_ = nullptr;
     PreviewWidget *preview_ = nullptr;
     ReliefPreviewWidget *relief3d_ = nullptr;
+    NoiseFloorWidget *noiseFloor_ = nullptr;
+    NoteLabel *noiseFloorNote_ = nullptr;
 
     QLabel *fileLabel_ = nullptr;
     QLabel *specimenLabel_ = nullptr;
