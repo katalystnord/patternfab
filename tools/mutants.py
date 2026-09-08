@@ -171,6 +171,13 @@ def main():
     ap.add_argument("--limit", type=int, default=0, help="sample this many mutants")
     ap.add_argument("--seed", type=int, default=20260818)
     ap.add_argument("--timeout", type=int, default=600)
+    ap.add_argument("--jobs", type=int, default=0,
+                    help="build with this many parallel jobs. Default: however "
+                         "many ninja chooses, which is every core on the "
+                         "machine. Give a number when something else is using "
+                         "the machine too -- a mutation run is sustained full "
+                         "load and a poor neighbour at its natural width.")
+    ap.add_argument("--json", help="write the full result to this file")
     ap.add_argument("--json", help="write the full result to this file")
     args = ap.parse_args()
 
@@ -213,9 +220,18 @@ def main():
         print(dirty, file=sys.stderr)
         return 2
 
+    # ⚑ mold, when it is on the machine. Most of a mutant's cost is not
+    # compiling the one file that changed but relinking every test executable,
+    # and the linker is where that time goes.
+    if shutil.which("mold"):
+        configure.append("-DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=mold")
+        print("Linking with mold.")
+
+    build_args = ["--parallel", str(args.jobs)] if args.jobs > 0 else []
+
     print("=== Baseline: the suite must be green before anything is broken ===")
     subprocess.run(configure, check=True, stdout=subprocess.DEVNULL)
-    if subprocess.run(["cmake", "--build", str(build)],
+    if subprocess.run(["cmake", "--build", str(build)] + build_args,
                       stdout=subprocess.DEVNULL).returncode != 0:
         print("mutants.py: the tree does not build. Fix that first.", file=sys.stderr)
         return 2
@@ -248,7 +264,7 @@ def main():
         backup = path.read_text()
         try:
             path.write_text(m["mutated"])
-            built = subprocess.run(["cmake", "--build", str(build)],
+            built = subprocess.run(["cmake", "--build", str(build)] + build_args,
                                    stdout=subprocess.DEVNULL,
                                    stderr=subprocess.DEVNULL).returncode
             if built != 0:
@@ -273,7 +289,7 @@ def main():
               f"   (~{rate:.1f}s/mutant)")
 
     # Rebuild clean, so the tree is left as it was found.
-    subprocess.run(["cmake", "--build", str(build)], stdout=subprocess.DEVNULL)
+    subprocess.run(["cmake", "--build", str(build)] + build_args, stdout=subprocess.DEVNULL)
 
     scored = len(killed) + len(survived)
     score = (100.0 * len(killed) / scored) if scored else 0.0
