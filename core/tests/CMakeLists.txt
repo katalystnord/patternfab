@@ -81,3 +81,12 @@ target_include_directories(patternfab-core-tests-integral-image PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../src
 )
 add_test(NAME patternfab-core-tests-integral-image COMMAND patternfab-core-tests-integral-image)
+
+add_executable(patternfab-core-tests-relief-field test_relief_field.cpp)
+target_link_libraries(patternfab-core-tests-relief-field PRIVATE
+    patternfab-core
+)
+target_include_directories(patternfab-core-tests-relief-field PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src
+)
+add_test(NAME patternfab-core-tests-relief-field COMMAND patternfab-core-tests-relief-field)
