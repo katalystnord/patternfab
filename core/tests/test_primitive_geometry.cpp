@@ -71,6 +71,16 @@ void a_feature_size_is_the_smallest_dimension_a_cutter_has_to_hold() {
     check(std::abs(patternfab::featureSizeMm(makeBar()) - 1.0) < 1e-12,
           "a bar 1 wide and 5 tall has a feature size of 1, not 5 and not 6");
 
+    // ⚑ Straddling the origin, because min() hides an error in whichever
+    // dimension is not the smallest: for a bar in the positive quadrant,
+    // maxY PLUS minY is larger than the correct width and the min() picks the
+    // width anyway. Across the origin the wrong arithmetic goes NEGATIVE and
+    // wins, so the same bar reports a feature size no cutter could hold.
+    patternfab::Primitive straddling = makeBar();
+    straddling.verticesMm = {{-0.5, -3.0}, {0.5, -3.0}, {0.5, 2.0}, {-0.5, 2.0}};
+    check(std::abs(patternfab::featureSizeMm(straddling) - 1.0) < 1e-12,
+          "a bar across the origin is measured by its extent, not by its coordinates");
+
     check(std::abs(patternfab::featureSizeMm(makeEllipse(4.0, 4.0, 0.5, 2.0)) - 1.0) < 1e-12,
           "an ellipse is measured across its narrow axis, as a diameter");
     check(std::abs(patternfab::featureSizeMm(makeEllipse(4.0, 4.0, 1.5, 1.5)) - 3.0) < 1e-12,
