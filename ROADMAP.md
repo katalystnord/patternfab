@@ -156,11 +156,15 @@ rather than at the worst, which is one subset over blank ground.
 ## Test and tooling debt
 
 - **Coverage** is neither measured nor tracked.
-- **Mutation testing** now exists (`tools/mutants.py`, ported from SurView) and
-  the first full sweep, 2026-09-09, scored **54.2%**: of 325 viable mutants,
-  149 changed the meaning of a line and no test noticed. That is the real state
-  of the suite behind eight green executables, and the survivors are the work
-  list. `NoiseFloorImage.cpp` has since been taken from 26 survivors to 2.
+- **Mutation testing** now exists (`tools/mutants.py`, ported from SurView).
+  The first full sweep, 2026-09-09, scored **54.2%**: of 325 viable mutants,
+  149 changed the meaning of a line and no test noticed. That was the real
+  state of the suite behind eight green executables. Working through the
+  survivors that night took it to **75.3%** (81 of 328 surviving), and the
+  three largest clusters all had the same cause: a pure function sealed in an
+  anonymous namespace where no test could reach it. Those are now
+  `IntegralImage.h`, `ReliefField.h` and `PrimitiveGeometry.h`. The remaining
+  survivors are in `UncertaintyEngine.cpp` (29) and `StlExport.cpp` (20).
 - **A sanitizer build.** A mutant that reads one past the end of a vector
   cannot be caught by any assertion -- the value read is whatever sits there
   and nothing downstream changes. `-fsanitize=address,undefined` over the

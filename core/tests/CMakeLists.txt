@@ -99,3 +99,14 @@ target_include_directories(patternfab-core-tests-primitive-geometry PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../src
 )
 add_test(NAME patternfab-core-tests-primitive-geometry COMMAND patternfab-core-tests-primitive-geometry)
+
+add_executable(patternfab-core-tests-export-refusals test_export_refusals.cpp)
+target_link_libraries(patternfab-core-tests-export-refusals PRIVATE
+    patternfab-core
+    ${VTK_LIBRARIES}
+)
+vtk_module_autoinit(
+    TARGETS patternfab-core-tests-export-refusals
+    MODULES ${VTK_LIBRARIES}
+)
+add_test(NAME patternfab-core-tests-export-refusals COMMAND patternfab-core-tests-export-refusals)
