@@ -31,6 +31,7 @@ import os
 import random
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -154,15 +155,121 @@ def find_mutants(path):
     return found
 
 
+def load_survivors(result_path, root):
+    """Rebuild the exact mutants an earlier run recorded as survivors.
+
+    ⚑ Each one is verified against the file as it stands NOW: the offsets are
+    from the run that recorded them, and any edit since has moved them. A
+    mutant whose recorded `from` is no longer at its recorded offset is
+    reported and skipped rather than applied somewhere it does not belong,
+    which would silently measure a mutation nobody chose -- the same hazard as
+    the harness editing a dirty tree.
+    """
+    data = json.loads(result_path.read_text())
+    replayed = []
+    moved = []
+    for entry in data.get("survived", []):
+        path = (root / entry["file"]).resolve()
+        if not path.exists():
+            moved.append(f"{entry['file']}: gone")
+            continue
+        text = path.read_text()
+        start, end = entry["start"], entry["end"]
+        if text[start:end] != entry["from"]:
+            moved.append(f"{entry['file']}:{entry['line']} {entry['from']!r} has moved")
+            continue
+        replayed.append({
+            "file": entry["file"],
+            "path": path,
+            "line": entry["line"],
+            "operator": entry["operator"],
+            "from": entry["from"],
+            "to": entry["to"],
+            "start": start,
+            "end": end,
+            "source": text,
+            "mutated": text[:start] + entry["to"] + text[end:],
+            "context": entry.get("context", ""),
+        })
+
+    if moved:
+        print(f"=== {len(moved)} recorded survivors could not be replayed ===")
+        for line in moved:
+            print(f"  {line}")
+        print("  (the source moved under them; sweep those files afresh)\n")
+    return replayed
+
+
+def tests_covering(path, root):
+    """The tests that compile against the mutated file, as a ctest -R pattern.
+
+    ⚑ WHY A MUTANT DOES NOT NEED THE WHOLE SUITE. A mutation in Sequence.cpp
+    cannot be caught by a test that never compiles against it, and running all
+    33 executables to find that out costs three minutes a mutant where two
+    executables would cost three seconds. Measured on this project, 2026-09-10:
+    a full sweep spends most of its time re-running tests that could not
+    possibly notice.
+
+    The set is derived from the include graph rather than from a hand-written
+    map, so it cannot rot: a test that includes core/Sequence.h is a test that
+    might notice a change to Sequence.cpp. Direct includes only, which makes it
+    a lower bound on what could catch the mutant -- and that is the whole reason
+    the caller treats a pass here as INCONCLUSIVE and re-runs the complete suite
+    before recording a survivor. A narrow filter can only ever produce a false
+    survivor, never a false kill, and a false survivor costs one more run.
+
+    Returns None when nothing includes the header, which sends the mutant
+    straight to the complete suite.
+    """
+    header = path.with_suffix(".h").name
+    covering = []
+    for case in sorted((root / "tests").glob("test_*.cpp")):
+        if header in case.read_text():
+            covering.append(case.stem)
+    if not covering:
+        return None
+    return "^(" + "|".join(covering) + ")$"
+
+
+# The child currently running, so a signal can take it down with us. ⚑ A sweep
+# is long and gets interrupted; killed without this, the python exits and leaves
+# ctest and every test binary it started running on. SurView found orphans from
+# three separate killed sweeps still holding that machine at a load average of
+# 31 on 2026-09-11.
+_running = None
+
+
 def run(cmd, cwd, timeout):
+    global _running
     try:
-        p = subprocess.run(cmd, cwd=cwd, timeout=timeout,
-                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        return p.returncode
+        # Its own process group, so one kill reaches ctest AND the binaries it
+        # started rather than orphaning them.
+        p = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL, start_new_session=True)
+        _running = p
+        try:
+            return p.wait(timeout=timeout)
+        finally:
+            _running = None
     except subprocess.TimeoutExpired:
+        kill_group(p)
         # A mutant that makes the suite hang is caught, not ignored: an
         # infinite loop is a behaviour change a user would certainly notice.
         return 124
+
+
+def kill_group(process):
+    """Take down a child and everything it started."""
+    if process is None or process.poll() is not None:
+        return
+    try:
+        os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+    except (ProcessLookupError, PermissionError):
+        pass
+    try:
+        process.wait(timeout=10)
+    except subprocess.TimeoutExpired:
+        pass
 
 
 def main():
@@ -178,6 +285,15 @@ def main():
                          "the machine too -- a mutation run is sustained full "
                          "load and a poor neighbour at its natural width.")
     ap.add_argument("--json", help="write the full result to this file")
+    ap.add_argument("--rerun", metavar="RESULT.JSON",
+                    help="re-run exactly the survivors recorded in an earlier "
+                         "run's --json, instead of generating mutants afresh. "
+                         "⚑ This is the half that finds things: replaying a "
+                         "SURVIVOR list against a suite that has since been "
+                         "worked on says which of them are now closed, and it "
+                         "is minutes rather than the hours a fresh sweep costs. "
+                         "Re-proving known kills finds nothing and is why "
+                         "SurView's sweeps were being stopped half-way.")
     args = ap.parse_args()
 
     root = REPO
@@ -201,6 +317,15 @@ def main():
         + sorted((REPO / "core" / "include" / "patternfab").glob("*.h"))
     # The whole suite runs in well under a second, so there is nothing to
     # exclude and no fast/slow split to explain.
+    #
+    # ⚑ AND THAT IS WHY SurView'S LOCALISATION IS NOT PORTED HERE, which is
+    # worth saying so nobody ports it later for symmetry. There, a mutant ran
+    # all 33 test executables and cost three minutes, so running only the tests
+    # that compile against the mutated file cut a sweep by more than half.
+    # Measured here on 2026-09-11: the whole suite is 0.43 s, and a mutant's
+    # cost is its REBUILD. Narrowing the test set would save four tenths of a
+    # second and buy a way to be wrong about coverage. The same fix, in the same
+    # family of tools, is right in one and pointless in the other.
     test_filter = []
     ctest_dir = build
     ctest_cwd = build
@@ -249,9 +374,15 @@ def main():
         return 2
     print("Baseline green.\n")
 
-    mutants = []
-    for f in files:
-        mutants.extend(find_mutants(f))
+    if args.rerun:
+        mutants = load_survivors(Path(args.rerun), root)
+        if not mutants:
+            print("mutants.py: nothing to replay", file=sys.stderr)
+            return 2
+    else:
+        mutants = []
+        for f in files:
+            mutants.extend(find_mutants(f))
     total_found = len(mutants)
 
     if args.limit and args.limit < len(mutants):
@@ -261,12 +392,35 @@ def main():
     print(f"=== {len(mutants)} mutants "
           f"({total_found} found across {len(files)} files) ===\n")
 
+    # ⚑ AN INTERRUPTED SWEEP MUST LEAVE THE TREE AS IT FOUND IT. It edits the
+    # source in place and restores from a backup held in memory, so a sweep
+    # killed between writing a mutant and restoring leaves a deliberately broken
+    # file behind - indistinguishable from work in progress, which is the same
+    # hazard the dirty-tree check above refuses to risk. It happened in SurView
+    # on 2026-09-10, twice.
+    #
+    # SIGTERM and SIGINT are handled; SIGKILL cannot be, which is why the
+    # message says which signal to use.
+    restoring = {}
+
+    def put_everything_back(*_):
+        for target, text in restoring.items():
+            Path(target).write_text(text)
+        kill_group(_running)
+        print("\nmutants.py: interrupted; source restored and children stopped.",
+              file=sys.stderr)
+        sys.exit(130)
+
+    signal.signal(signal.SIGINT, put_everything_back)
+    signal.signal(signal.SIGTERM, put_everything_back)
+
     killed, survived, not_viable = [], [], []
     started = time.time()
 
     for i, m in enumerate(mutants, 1):
         path = m["path"]
         backup = path.read_text()
+        restoring[str(path)] = backup
         try:
             path.write_text(m["mutated"])
             built = subprocess.run(["cmake", "--build", str(build)] + build_args,
@@ -286,6 +440,7 @@ def main():
                     verdict = "killed"
         finally:
             path.write_text(backup)
+            restoring.pop(str(path), None)
 
         rate = (time.time() - started) / i
         print(f"[{i}/{len(mutants)}] {verdict:10} "
