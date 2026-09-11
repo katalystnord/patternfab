@@ -165,6 +165,41 @@ rather than at the worst, which is one subset over blank ground.
   anonymous namespace where no test could reach it. Those are now
   `IntegralImage.h`, `ReliefField.h` and `PrimitiveGeometry.h`. The remaining
   survivors are in `UncertaintyEngine.cpp` (29) and `StlExport.cpp` (20).
+  ⚑ **A COMPLETE FRESH SWEEP, 2026-09-11: 80.5%**, 264 killed of 328 viable
+  from 668 mutants generated (340 did not compile). Then a morning's work took
+  **17 of those 64 survivors**, measured by replaying the list rather than
+  assumed - which is the workflow the harness had been missing here and which
+  now costs two minutes.
+
+  What it found, and every one of them was a case that covered a rule while
+  missing the shape the rule is for:
+
+  - **The gradient is a CENTRAL difference and nothing checked it has no
+    preferred direction.** All four of its terms carried survivors; turning any
+    one into the pixel itself gives a one-sided difference, halved - a
+    confidence map that leans, everywhere, in the axis it was broken in.
+  - **The sampler's clamp had no contrast to clamp.** The fixture's circle sits
+    mid-specimen, so the borders are blank. ⚑ And the fixture that asks the
+    question has to be PIXEL-ALIGNED: two circles straddling the borders differ
+    by exactly half of one grey level at their mirrored edges, because Qt
+    antialiases a circle centred on pixel 0 differently from one centred on
+    pixel 200. Axis-aligned bars have nothing to round, and the asymmetry is
+    then exactly zero.
+  - **The parameter guard was tested by "did something throw".** A specimen of
+    zero width slips past it and is caught by the next guard instead, which
+    blames the imaging resolution for a specimen that has no width at all.
+  - **The subset's pixel count scales every floor the tool reports**, and a
+    floor wrong by a constant factor survives the map's shape, its percentile
+    summary and its comparison with a measured run. It now has an answer derived
+    from the pattern's own geometry rather than read back from the code.
+
+  **47 survivors stand**: 12 in `UncertaintyEngine.cpp` (mostly the subset-bounds
+  guards, whose only effect is a read past the end of an integral image -
+  undefined behaviour rather than an assertion, and not worth a case), 8 each in
+  `StlExport.cpp` and `ConstraintEngine.cpp`, 6 each in `RasterInput.cpp` and
+  `PngExport.cpp`, 3 in `ReliefField.h`. The exporters are unexplored and are a
+  session of their own.
+
 - **A sanitizer build.** A mutant that reads one past the end of a vector
   cannot be caught by any assertion -- the value read is whatever sits there
   and nothing downstream changes. `-fsanitize=address,undefined` over the
