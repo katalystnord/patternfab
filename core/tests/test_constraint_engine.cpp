@@ -1,3 +1,23 @@
+// ⚑ THREE SURVIVORS HERE ARE EQUIVALENT, chased on 2026-09-11 and written down
+// so the next sweep does not chase them again:
+//
+//   - `effectiveRadiusToward(primitives[j], -ux, -uy)` with the sign flipped.
+//     The function is direction-SYMMETRIC for every shape it supports: a
+//     polygon returns its bounding radius and ignores the direction entirely, a
+//     circle is uniform, and an ellipse's polar formula squares the direction,
+//     so r(u) == r(-u) always. No pattern can tell the two apart. The sign is
+//     the intent, not the behaviour - and it starts to matter the day a shape
+//     gets a radius that genuinely depends on which way it is asked, which is
+//     also the day a polygon stops being approximated by its bounding circle.
+//   - `constraints.minFeatureSizeMm <= 0.0` narrowed to `< 0.0`. Zero then
+//     falls through to the loop instead of returning early, and the loop finds
+//     nothing, because no feature is smaller than zero. The guard is a
+//     short-circuit whose answer the loop reproduces. Its sibling on the
+//     BRIDGING check is not equivalent at all - an overlap is a negative gap
+//     and a negative gap is below zero - and that one has a case.
+//   - `centerDist < 1e-12` widened to `<=`. It changes the answer only for two
+//     centres exactly 1e-12 mm apart, which is a picometre.
+
 #include <patternfab/ConstraintEngine.h>
 
 #include <cmath>
@@ -326,6 +346,68 @@ void the_gap_between_two_ellipses_is_measured_along_the_line_between_them() {
 }
 } // namespace
 
+
+// ⚑ THE MARGIN'S OWN BOUNDARY, which is the number the whole rule turns on. A
+// real speckle field is discrete dots, so its bounding box is always inset from
+// the specimen edge by up to one speckle - and requiring the extent to reach
+// the edge would fire the tiling warning on every physically-applied pattern.
+// That is why the test is against a margin at all, and why it is "<" rather
+// than "<=": a field inset by EXACTLY one speckle covers the specimen, and must
+// not be told it needs tiling.
+//
+// The cases above sit well clear of that line on both sides, so both mutants
+// lived on it.
+void a_field_inset_by_exactly_one_speckle_does_not_need_tiling() {
+    const double speckle = 0.5;
+
+    // Extent exactly 9.5 mm on a 10 mm specimen: inset by one speckle exactly.
+    patternfab::Pattern justCovers;
+    justCovers.params.specimenWidthMm = 10.0;
+    justCovers.params.specimenHeightMm = 10.0;
+    justCovers.params.targetSpeckleSizeMm = speckle;
+    justCovers.primitives.push_back(makeCircle(0.25, 0.25, 0.25));   // 0.0 .. 0.5
+    justCovers.primitives.push_back(makeCircle(9.25, 9.25, 0.25));   // 9.0 .. 9.5
+
+    check(!patternfab::patternRequiresTiling(justCovers),
+          "a field inset by exactly one speckle was told it needs tiling, which "
+          "is the false positive the margin exists to prevent");
+
+    // And a hair short of that does need it, or the margin has swallowed the
+    // rule it was added to protect.
+    patternfab::Pattern fallsShort = justCovers;
+    fallsShort.primitives.back() = makeCircle(9.2, 9.2, 0.25);       // 8.95 .. 9.45
+    check(patternfab::patternRequiresTiling(fallsShort),
+          "a field leaving a strip wider than one speckle was not flagged");
+}
+
+// ⚑ TWO PRIMITIVES AT THE SAME PLACE ARE THE WORST BRIDGING CASE THERE IS, and
+// the one the gap arithmetic handles separately: with no line between their
+// centres there is no direction to measure along, so the gap is taken as minus
+// the larger radius - fully overlapping. Flip that sign and two dots printed on
+// top of one another report a gap as wide as a dot, which is not a violation at
+// all. A stencil cut that way has a hole where the pattern says it has a bridge.
+void two_primitives_at_the_same_place_are_reported_as_overlapping() {
+    patternfab::Pattern pattern;
+    pattern.params.specimenWidthMm = 10.0;
+    pattern.params.specimenHeightMm = 10.0;
+    pattern.primitives.push_back(makeCircle(5.0, 5.0, 1.0));
+    pattern.primitives.push_back(makeCircle(5.0, 5.0, 1.5));   // exactly on top
+
+    patternfab::ManufacturingConstraints constraints;
+    constraints.minBridgeWidthMm = 0.2;
+
+    const auto violations = patternfab::checkStencilBridging(pattern, constraints);
+    check(violations.size() == 1,
+          "two primitives at the same centre were not reported as a bridging "
+          "violation at all");
+    if (!violations.empty()) {
+        check(violations.front().gapMm < 0.0,
+              "coincident primitives reported a gap of "
+                  + std::to_string(violations.front().gapMm)
+                  + " mm, which says they do not touch");
+    }
+}
+
 int main() {
     testBoundingBoxAndTiling();
     testMinimumFeatureSize();
@@ -337,6 +419,8 @@ int main() {
     a_pattern_is_measured_by_its_extent_not_by_where_it_sits();
     a_bleed_allowance_is_taken_off_both_radii();
     the_gap_between_two_ellipses_is_measured_along_the_line_between_them();
+    a_field_inset_by_exactly_one_speckle_does_not_need_tiling();
+    two_primitives_at_the_same_place_are_reported_as_overlapping();
 
     if (failures == 0) {
         std::cout << "OK: all patternfab-core constraint engine tests passed" << std::endl;
