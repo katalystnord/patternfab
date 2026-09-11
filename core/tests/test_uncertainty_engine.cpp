@@ -655,6 +655,71 @@ void the_clamp_at_the_border_samples_the_border_itself() {
               + std::to_string(worstDown));
 }
 
+
+// ⚑ THE SUBSET'S PIXEL COUNT, WHICH SCALES EVERY FLOOR THE TOOL REPORTS. The
+// mean noise variance is a sum over the subset divided by its area, written as
+// (2r + 1) squared, and three mutants sat on that expression: 2r, 2r + 2, and
+// 2r - 1. Each multiplies every sigma by a constant - 1.5 at radius 1, and
+// still 3 per cent at radius 16 - and a floor wrong by a constant factor is
+// exactly the kind of wrong that looks right: the map's shape, its percentile
+// summary and its comparison against a measured run all survive it unchanged.
+//
+// THE ANSWER HERE IS DERIVED FROM THE PATTERN, NOT FROM THE CODE. A 1 mm square
+// at 20 px/mm is a 20 px dot. Its two vertical edges are 20 px tall, and a
+// central difference across a step from white to black gives 0.5 at each of the
+// two columns either side of an edge, so
+//
+//     sum gx^2 = 2 edges * 2 columns * 20 rows * 0.5^2 = 20
+//
+// and the same down the other axis, so the weaker axis is 20 too. The sensor
+// noise is constant (S = 0), so the subset's mean variance is exactly O,
+// whatever the subset's area - and
+//
+//     sigma = sqrt(2 * O / 20) = sqrt(0.001) = 0.0316227766...
+//
+// ⚑ AND IT MUST NOT MOVE WITH THE RADIUS. All the gradient energy is inside the
+// dot, so a larger subset adds only blank pixels: it adds nothing to the sum
+// and nothing to the mean of a constant. A pixel count computed wrongly does
+// depend on the radius, so the two checks catch it from opposite sides - one by
+// its value, one by its behaviour.
+void the_floor_of_an_enclosed_dot_is_the_one_its_edges_give() {
+    patternfab::Pattern pattern;
+    pattern.params.specimenWidthMm = 10.0;
+    pattern.params.specimenHeightMm = 10.0;
+    pattern.params.imagingResolutionPxPerMm = 20.0;
+
+    patternfab::Primitive dot;
+    dot.shape = patternfab::PrimitiveShape::Polygon;
+    dot.verticesMm = {{4.5, 4.5}, {5.5, 4.5}, {5.5, 5.5}, {4.5, 5.5}};
+    pattern.primitives.push_back(dot);
+
+    patternfab::SensorNoiseProfile noise;
+    noise.S = 0.0;
+    noise.O = 0.01;
+
+    const double edgeLengthPx = 20.0;
+    const double expected = std::sqrt(2.0 * noise.O / edgeLengthPx);
+
+    double first = 0.0;
+    for (const int radius : {16, 20, 24}) {
+        const auto map = patternfab::computeNoiseFloorMap(pattern, noise, radius);
+        const double sigma = map.sigmaPx[static_cast<std::size_t>(100) * map.widthPx + 100];
+
+        check(std::fabs(sigma - expected) < 1e-9,
+              "a 20 px dot under constant noise gives a floor its own edges "
+              "decide: expected " + std::to_string(expected) + ", got "
+                  + std::to_string(sigma) + " at radius "
+                  + std::to_string(radius));
+
+        if (first == 0.0)
+            first = sigma;
+        check(std::fabs(sigma - first) < 1e-12,
+              "the floor moved when the subset grew, though the pattern put no "
+              "gradient in the pixels that were added: " + std::to_string(sigma)
+                  + " against " + std::to_string(first));
+    }
+}
+
 int main() {
     testGradientLocation();
     testNoiseReducesConfidence();
@@ -662,6 +727,7 @@ int main() {
     testInvalidParameters();
     each_bad_parameter_is_refused_for_being_what_it_is();
     a_specimen_of_two_pixels_is_the_smallest_there_is();
+    the_floor_of_an_enclosed_dot_is_the_one_its_edges_give();
     testNoiseFloorIsInPixelsAndImprovesWithContrast();
     testNoiseFloorTakesTheWorseAxis();
     testALargerSubsetLowersTheFloor();
