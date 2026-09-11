@@ -438,6 +438,53 @@ void a_confidence_sitting_exactly_on_the_threshold_is_not_below_it() {
 }
 } // namespace
 
+
+// ⚑ THE GRADIENT IS CENTRAL, AND A CENTRAL DIFFERENCE HAS NO PREFERRED
+// DIRECTION. Nothing checked that. The sweep of 2026-09-09 left mutants in all
+// four of its terms - I(x+1), I(x-1), I(x,y+1), I(x,y-1) - and turning any one
+// of them into the pixel itself makes a ONE-SIDED difference, halved: a
+// confidence map that leans, everywhere, in the axis it was broken in. Every
+// figure downstream is built from these numbers, and a lean of that kind looks
+// like an ordinary map of an ordinary pattern.
+//
+// A circle centred in the specimen renders symmetrically about the half-pixel
+// line between columns 99 and 100 (measured, not assumed: the asymmetry there
+// is exactly zero, while about any neighbouring line it is 5.0). The physics
+// has no preferred direction either, so the confidence map must carry that
+// symmetry through - in BOTH axes, since each is computed by its own line of
+// code and a rule about two axes needs to ask about two.
+void the_confidence_map_leans_in_neither_direction() {
+    const patternfab::Pattern pattern = makeSingleCirclePattern();
+    patternfab::SensorNoiseProfile noise;
+    noise.S = 0.0;
+    noise.O = 0.01;
+
+    const auto map = patternfab::computeUncertaintyMap(pattern, noise);
+    check(map.widthPx == 200 && map.heightPx == 200,
+          "the fixture no longer renders 200x200, so the mirror line has moved");
+
+    // The circle's own edge is where the gradient lives, so the walk covers it:
+    // radius 2 mm at 20 px/mm is 40 px from the centre.
+    double worstAcross = 0.0;
+    double worstDown = 0.0;
+    for (int d = 0; d <= 45; ++d) {
+        worstAcross = std::max(worstAcross,
+                               std::fabs(confidenceAt(map, 100 + d, 100)
+                                         - confidenceAt(map, 99 - d, 100)));
+        worstDown = std::max(worstDown,
+                             std::fabs(confidenceAt(map, 100, 100 + d)
+                                       - confidenceAt(map, 100, 99 - d)));
+    }
+
+    check(worstAcross < 1e-12,
+          "the confidence map is not symmetric across the specimen: the "
+          "horizontal gradient leans to one side, worst "
+              + std::to_string(worstAcross));
+    check(worstDown < 1e-12,
+          "the confidence map is not symmetric down the specimen: the vertical "
+          "gradient leans to one side, worst " + std::to_string(worstDown));
+}
+
 int main() {
     testGradientLocation();
     testNoiseReducesConfidence();
@@ -454,6 +501,7 @@ int main() {
     testTheSubsetRadiusTravelsWithTheFigure();
     the_typical_figure_is_the_ninety_fifth_percentile_exactly();
     a_confidence_sitting_exactly_on_the_threshold_is_not_below_it();
+    the_confidence_map_leans_in_neither_direction();
 
     if (failures == 0) {
         std::cout << "OK: all patternfab-core uncertainty engine tests passed" << std::endl;
