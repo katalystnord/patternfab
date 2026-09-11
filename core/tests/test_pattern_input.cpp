@@ -106,9 +106,57 @@ void testRasterInput() {
 
 } // namespace
 
+
+// Which reader a file gets, and what it is told when it gets none.
+//
+// ⚑ THE TWO REFUSALS MEAN DIFFERENT THINGS TO A USER. "Unsupported raster
+// format" says bring a different file; "Failed to read" says this file, in a
+// format we do support, could not be opened. Getting them the wrong way round
+// sends someone to convert a perfectly good TIFF, or to hunt a corrupt file
+// that was never supported in the first place.
+//
+// The dispatch is three comparisons and an OR, and all three carried survivors:
+// an extension test inverted sends every OTHER format to the TIFF reader, and
+// an AND in place of the OR sends .tif itself to the unsupported branch. None
+// of this needs a real TIFF on disk - a path that does not exist is enough,
+// because the question is which branch the EXTENSION chose, and the two
+// branches say different things.
+void a_file_is_offered_to_the_reader_its_extension_names() {
+    const auto refusalFor = [](const std::string &path) {
+        patternfab::PhysicalParameters params;
+        params.specimenWidthMm = 10.0;
+        params.specimenHeightMm = 10.0;
+        params.imagingResolutionPxPerMm = 20.0;
+        try {
+            patternfab::loadPatternFromRasterFile(path, params);
+        } catch (const std::runtime_error &error) {
+            return std::string(error.what());
+        }
+        return std::string();
+    };
+
+    // Formats we do support: missing from disk, so they fail - but at the
+    // READING stage, having been given a reader.
+    for (const char *name : {"/tmp/patternfab_absent.tif",
+                             "/tmp/patternfab_absent.tiff",
+                             "/tmp/patternfab_absent.png"}) {
+        const std::string said = refusalFor(name);
+        check(said.find("Failed to read") != std::string::npos,
+              std::string("a supported format was turned away as unsupported: ")
+                  + name + " -> " + said);
+    }
+
+    // And one we do not: turned away for what it is, before any reader is
+    // asked to open it.
+    const std::string said = refusalFor("/tmp/patternfab_absent.jpg");
+    check(said.find("Unsupported raster format") != std::string::npos,
+          "an unsupported format was not named as such: " + said);
+}
+
 int main() {
     testVectorInput();
     testRasterInput();
+    a_file_is_offered_to_the_reader_its_extension_names();
 
     if (failures == 0) {
         std::cout << "OK: all patternfab-core input tests passed" << std::endl;

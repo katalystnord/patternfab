@@ -44,6 +44,17 @@
 //                               instead of to the left. A closed ring puts an
 //                               even number of crossings on any scanline, so
 //                               the two counts always share a parity.
+//
+// And a third, added 2026-09-11 from the fresh sweep:
+//
+//   normalizedDistSq > 1.0      The dome's own rim. A point exactly ON it has
+//     -> >= 1.0                 a normalised distance of 1, and the branch the
+//                               guard skips would compute
+//                               bumpHeight * sqrt(1 - 1), which is zero - the
+//                               same zero the guard returns. The two paths meet
+//                               exactly at the boundary, which is what makes a
+//                               hemispherical cap continuous with the plate it
+//                               sits on, so no point can tell them apart.
 
 #include "ReliefField.h"
 
