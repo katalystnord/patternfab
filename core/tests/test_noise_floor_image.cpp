@@ -42,6 +42,13 @@
 //     unchanged. It wants the suite built under a sanitizer, which is on the
 //     roadmap rather than pretended at here.
 
+// ⚑ TWO SURVIVORS HERE ARE CLOSED BY ARGUMENT (2026-09-11). The ramp's segment
+// index (`t < 1.0` widened to "<=") picks the lower segment at exactly the
+// junction and interpolates all the way to its far stop - which IS the upper
+// segment's near stop, the same colour, because a ramp is continuous where its
+// segments meet. And the pixel loop widened to "<=" reads one element past the
+// end of the map, which is undefined behaviour rather than an assertion.
+
 #include <patternfab/NoiseFloorImage.h>
 
 #include <cmath>

@@ -193,12 +193,32 @@ rather than at the worst, which is one subset over blank ground.
     summary and its comparison with a measured run. It now has an answer derived
     from the pattern's own geometry rather than read back from the code.
 
-  **47 survivors stand**: 12 in `UncertaintyEngine.cpp` (mostly the subset-bounds
-  guards, whose only effect is a read past the end of an integral image -
-  undefined behaviour rather than an assertion, and not worth a case), 8 each in
-  `StlExport.cpp` and `ConstraintEngine.cpp`, 6 each in `RasterInput.cpp` and
-  `PngExport.cpp`, 3 in `ReliefField.h`. The exporters are unexplored and are a
-  session of their own.
+  **The exporters were then worked too, and 40 of the original 64 survivors are
+  killed.** `StlExport.cpp` and `PngExport.cpp` are at ZERO: both carried the
+  same defect as the uncertainty engine's parameter guard, and this file's own
+  header already said what to do about it - "which refusal, not merely that
+  there was one" - while two of its cases took any exception as proof. A width
+  of zero slips past the parameter guard and the SECOND guard catches it, so the
+  reader is told the image rounds to no pixels, or that the mesh resolution is
+  too low, about a specimen with no width at all.
+
+  Also closed: the tiling margin's own boundary (a field inset by exactly one
+  speckle covers the specimen and must not be told to tile - which is the false
+  positive the margin exists to prevent); two primitives at the same place,
+  where flipping one sign reports a gap as wide as a dot between two dots
+  printed on top of each other; the raster reader's dispatch, where an inverted
+  extension test sends every other format to the TIFF reader and an AND sends
+  .tif itself to the unsupported branch; a subset of no radius; and the cell
+  each noise floor is written into, which a mirrored index gets wrong while the
+  map keeps its shape, its count and its whole summary.
+
+  **24 stand, every one chased to a reason beside its cases**: ten in
+  `UncertaintyEngine.cpp` and four more elsewhere are reads or writes one
+  element past the end of a vector - undefined behaviour rather than an
+  assertion; the rest are equivalent outright, including a radius function that
+  is direction-symmetric for every shape it supports, a colour ramp continuous
+  at its junctions, a dome rim where both branches compute the same zero, and
+  two default member values their only writers assign unconditionally.
 
 - **A sanitizer build.** A mutant that reads one past the end of a vector
   cannot be caught by any assertion -- the value read is whatever sits there

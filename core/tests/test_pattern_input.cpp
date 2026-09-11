@@ -1,3 +1,9 @@
+// ⚑ TWO SURVIVORS IN RasterInput.cpp ARE LEFT STANDING (2026-09-11): the two
+// pixel loops widened to "<=", which read one row and one column past the end
+// of the decoded image. That is undefined behaviour rather than an assertion -
+// what comes back is whatever sits beyond the buffer, and a pattern built from
+// it need not differ in any way a case could state.
+
 #include <patternfab/RasterInput.h>
 #include <patternfab/VectorInput.h>
 
