@@ -469,18 +469,8 @@ void the_confidence_map_leans_in_neither_direction() {
     // column and leans - which nothing sees if the walk stops in the middle of
     // the specimen. The circle's own edge is 40 px from the centre, so a walk
     // of 45 covers the gradient; a walk to 99 covers the clamp as well.
-    // ⚑ WHAT THIS STILL DOES NOT COVER, found while trying to and written down
-    // so the next attempt starts further along. The sampler CLAMPS a coordinate
-    // to the last row and column, and pulling that clamp in by one pixel
-    // (widthPx - 2) survives every case here: the fixture's circle sits in the
-    // middle, so the borders are blank and there is no contrast out there to
-    // sample wrongly. A pattern speckled to its edges is the ordinary case and
-    // would ask the question - but two circles straddling the left and right
-    // borders do NOT render as mirror images: the map is asymmetric by 0.0196
-    // at the border under correct code, by a constant amount that does not move
-    // when the circles do, so the cause is not their placement and is not yet
-    // understood. Establish that first; a fixture tuned until it passes would
-    // be worth nothing.
+    // The sampler's own clamp is covered separately, by the case below: it
+    // needs contrast AT the border, which this fixture has not got.
     double worstAcross = 0.0;
     double worstDown = 0.0;
     for (int d = 0; d <= 99; ++d) {
@@ -502,6 +492,89 @@ void the_confidence_map_leans_in_neither_direction() {
 }
 
 
+
+// ⚑ AND THE SAMPLER'S CLAMP, which the case above cannot reach. Reading outside
+// the image clamps to the last row and column, and that clamp is symmetric.
+// Pulled in by one pixel on the high side alone, the last column is sampled as
+// though it were its neighbour, and a specimen speckled to its edges - the
+// ordinary case - loses the gradient there. The fixture above cannot see it:
+// its circle sits mid-specimen and the borders are blank, so there is nothing
+// out there to sample wrongly.
+//
+// ⚑ IT HAS TO BE A PIXEL-ALIGNED SHAPE, and that cost an hour to learn. Two
+// CIRCLES straddling the borders do not render as mirror images: the map came
+// out asymmetric by 0.0196 under correct code, which is exactly half of one
+// grey level in 255, because Qt antialiases a circle centred on pixel 0
+// differently from one centred on pixel 200. Axis-aligned bars have their edges
+// on exact pixel boundaries, so the rasteriser has nothing to round
+// asymmetrically, and the measured asymmetry is then exactly zero.
+void the_clamp_at_the_border_samples_the_border_itself() {
+    patternfab::Pattern pattern;
+    pattern.params.specimenWidthMm = 10.0;
+    pattern.params.specimenHeightMm = 10.0;
+    pattern.params.imagingResolutionPxPerMm = 20.0;
+
+    // ⚑ A bar against each border, mirrored about the same half-pixel line the
+    // case above uses - and stopping ONE COLUMN SHORT of it, which is the whole
+    // point. A bar that runs past the edge leaves the border region uniformly
+    // dark, and a clamp reading one pixel in then samples dark where it should
+    // have sampled dark: no difference at all. Stopped short, the outermost
+    // column is light against a dark neighbour, and the gradient the clamp
+    // decides is exactly the one being asked about. px 1 to 29, and 171 to 199.
+    // ⚑ AND AGAINST ALL FOUR BORDERS, because the clamp is two lines of code -
+    // one per axis - and a fixture with contrast only at the left and right
+    // leaves the vertical one asking nothing. A rule about two axes has to put
+    // something on both.
+    for (const std::pair<double, double> &span :
+         {std::make_pair(0.05, 1.45), std::make_pair(8.55, 9.95)}) {
+        patternfab::Primitive upright;
+        upright.shape = patternfab::PrimitiveShape::Polygon;
+        upright.verticesMm = {{span.first, 3.0}, {span.second, 3.0},
+                              {span.second, 7.0}, {span.first, 7.0}};
+        pattern.primitives.push_back(upright);
+
+        patternfab::Primitive lying;
+        lying.shape = patternfab::PrimitiveShape::Polygon;
+        lying.verticesMm = {{3.0, span.first}, {7.0, span.first},
+                            {7.0, span.second}, {3.0, span.second}};
+        pattern.primitives.push_back(lying);
+    }
+
+    patternfab::SensorNoiseProfile noise;
+    noise.S = 0.0;
+    noise.O = 0.01;
+    const auto map = patternfab::computeUncertaintyMap(pattern, noise);
+
+    // There is real contrast in the last column, or the case asks nothing at
+    // all -- which is precisely how the clamp went uncovered in the first place.
+    double edgeConfidence = 0.0;
+    for (int y = 0; y < map.heightPx; ++y)
+        edgeConfidence = std::max(edgeConfidence, confidenceAt(map, map.widthPx - 1, y));
+    check(edgeConfidence > 0.0,
+          "the border carries no contrast, so this case cannot see the clamp");
+
+    double worstAcross = 0.0;
+    double worstDown = 0.0;
+    for (int d = 0; d <= 99; ++d) {
+        for (int other = 90; other <= 110; ++other) {
+            worstAcross = std::max(worstAcross,
+                                   std::fabs(confidenceAt(map, 100 + d, other)
+                                             - confidenceAt(map, 99 - d, other)));
+            worstDown = std::max(worstDown,
+                                 std::fabs(confidenceAt(map, other, 100 + d)
+                                           - confidenceAt(map, other, 99 - d)));
+        }
+    }
+    check(worstAcross < 1e-12,
+          "a specimen speckled to both side borders reads differently at one of "
+          "them: the horizontal clamp is not symmetric, worst "
+              + std::to_string(worstAcross));
+    check(worstDown < 1e-12,
+          "a specimen speckled to top and bottom reads differently at one of "
+          "them: the vertical clamp is not symmetric, worst "
+              + std::to_string(worstDown));
+}
+
 int main() {
     testGradientLocation();
     testNoiseReducesConfidence();
@@ -519,6 +592,7 @@ int main() {
     the_typical_figure_is_the_ninety_fifth_percentile_exactly();
     a_confidence_sitting_exactly_on_the_threshold_is_not_below_it();
     the_confidence_map_leans_in_neither_direction();
+    the_clamp_at_the_border_samples_the_border_itself();
 
     if (failures == 0) {
         std::cout << "OK: all patternfab-core uncertainty engine tests passed" << std::endl;
