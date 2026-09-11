@@ -14,6 +14,33 @@ set(CMAKE_AUTOUIC ON)
 # so they stay buildable everywhere; only the window needs the two to agree.
 option(PATTERNFAB_BUILD_GUI "Build the patternfab-gui application" ON)
 
+# ⚑ ADDRESS AND UNDEFINED-BEHAVIOUR SANITIZERS, for the class no assertion can
+# reach. A read or write one element past the end of a vector returns whatever
+# sits there and changes nothing downstream: no test can see it, and the
+# mutation sweep of 2026-09-11 left fourteen of exactly that shape standing with
+# a note beside each saying no case was coming. This catches the access itself
+# rather than its consequences, which is the only thing that closes them.
+#
+# ⚑ LEAK DETECTION IS OFF, deliberately. Qt holds singletons and caches alive to
+# exit by design, and LeakSanitizer reports that housekeeping at a volume that
+# buries anything of ours. The target class is memory ERRORS - out-of-bounds,
+# use-after-free, undefined arithmetic - which ASan and UBSan report exactly.
+# (The OpenCorr fork has no Qt, so its own run keeps leaks ON and found a real
+# one in the first minute.)
+#
+# Off by default and built into its own directory: the instrumentation changes
+# the object code, so producing the binaries anyone runs and checking them are
+# different jobs.
+option(PATTERNFAB_SANITIZE "Build with address and undefined-behaviour sanitizers (see tools/sanitize.sh)" OFF)
+if(PATTERNFAB_SANITIZE)
+    # -fno-sanitize-recover is what makes this a test rather than a log: without
+    # it UBSan prints a diagnostic, carries on, and the suite stays green while
+    # telling the truth where nobody reads it.
+    add_compile_options(-fsanitize=address,undefined -fno-sanitize-recover=all
+                        -fno-omit-frame-pointer -g -O1)
+    add_link_options(-fsanitize=address,undefined)
+endif()
+
 # Gui (QPainter) and Svg (QSvgGenerator) are what core itself needs. Widgets
 # and OpenGLWidgets are the window's alone -- OpenGLWidgets because
 # QVTKOpenGLNativeWidget derives from QOpenGLWidget.

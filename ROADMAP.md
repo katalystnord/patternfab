@@ -220,7 +220,16 @@ rather than at the worst, which is one subset over blank ground.
   at its junctions, a dome rim where both branches compute the same zero, and
   two default member values their only writers assign unconditionally.
 
-- **A sanitizer build.** A mutant that reads one past the end of a vector
+- **A sanitizer build - DONE, 2026-09-11** (`tools/sanitize.sh`, and its own CI
+  job). This is what closes the fourteen survivors recorded above as reads or
+  writes past the end of a vector: it catches the access itself rather than its
+  consequences. The suite is green under it. ⚑ Leak detection is OFF and that is
+  a scoping decision - Qt keeps singletons alive to exit by design, and
+  LeakSanitizer buries our own signal in that housekeeping; the OpenCorr fork,
+  which has no Qt, keeps leaks ON and found a real one in its first minute.
+
+  The original note, kept because the reasoning is what made it worth building:
+  A mutant that reads one past the end of a vector
   cannot be caught by any assertion -- the value read is whatever sits there
   and nothing downstream changes. `-fsanitize=address,undefined` over the
   existing suite is what closes that class, and the mutation run is what showed

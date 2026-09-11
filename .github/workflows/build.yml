@@ -51,6 +51,46 @@ jobs:
       - name: Test
         run: ctest --test-dir build --output-on-failure
 
+
+  sanitizers:
+    name: core and tests under address + UB sanitizers
+    needs: no-em-dashes
+    runs-on: ubuntu-latest
+    # ⚑ THE CLASS NO ASSERTION CAN CATCH. A read one element past the end of a
+    # vector returns whatever sits there and changes nothing downstream, so a
+    # test cannot see it and a mutation sweep reports it as a survivor with
+    # nothing to be done about it. Fourteen of the survivors standing after the
+    # sweep of 2026-09-11 are exactly that shape, each with a note beside it
+    # saying no case was coming. This is the job that closes them.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libvtk9-dev \
+            qt6-base-dev qt6-base-dev-tools qt6-svg-dev \
+            libdime-dev \
+            nlohmann-json3-dev
+
+      - name: Configure with sanitizers
+        run: cmake -B build-asan -S . -DPATTERNFAB_SANITIZE=ON -DPATTERNFAB_BUILD_GUI=OFF
+
+      - name: Build
+        run: cmake --build build-asan --parallel
+
+      - name: Test under the sanitizers
+        # Leaks are off on purpose: Qt keeps singletons alive to exit by design,
+        # and LeakSanitizer buries our own signal in that housekeeping. Memory
+        # ERRORS are the class being hunted and those are reported.
+        # -fno-sanitize-recover is compiled in, so a diagnostic is a failure
+        # rather than a line in a log nobody reads.
+        env:
+          ASAN_OPTIONS: detect_leaks=0:halt_on_error=1
+          UBSAN_OPTIONS: print_stacktrace=1
+        run: ctest --test-dir build-asan --output-on-failure
+
   gui:
     name: full build including the window (Ubuntu 26.04)
     needs: no-em-dashes
