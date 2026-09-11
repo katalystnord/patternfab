@@ -1,3 +1,35 @@
+// ⚑ WHAT STILL SURVIVES IN UncertaintyEngine.cpp, AND WHY NO CASE IS COMING
+// (chased individually, 2026-09-11):
+//
+//   the two render loops and the        Widened to "<=", each reads or writes
+//   two subset loops (4)                one element past the end of a vector.
+//                                       That is undefined behaviour, not an
+//                                       assertion: what the read returns is
+//                                       whatever sits there, and nothing
+//                                       downstream need change. A case resting
+//                                       on it would be evidence of nothing.
+//   the subset-bounds guard (6)         Same family, from the other side.
+//                                       Widening "x + r >= w" to ">", or
+//                                       joining its halves with AND, or
+//                                       flipping "x - r" to "x + r", lets a
+//                                       subset run off the image - and what it
+//                                       then sums is whatever the integral
+//                                       image holds beyond its own edge. The
+//                                       guard stays because the sum it prevents
+//                                       is silent, which is exactly why the
+//                                       case for a subset that FITS is written
+//                                       in terms of the count of established
+//                                       points rather than their values.
+//
+// Two more, in the sibling files, are equivalent rather than merely unobserved:
+// NoiseFloorImage's ramp index (`t < 1.0` widened to "<=" picks the lower
+// segment at exactly t == 1 and interpolates all the way to its far stop -
+// which IS the upper segment's near stop, the same colour, because a ramp is
+// continuous at its junctions), and the two default member values
+// (`highIsExceeded`, `patternRequiresTiling`), both of which are assigned
+// unconditionally by the only functions that build those structs, so the
+// initialiser is dead.
+
 #include <patternfab/UncertaintyEngine.h>
 
 #include <cmath>
@@ -720,6 +752,63 @@ void the_floor_of_an_enclosed_dot_is_the_one_its_edges_give() {
     }
 }
 
+
+// ⚑ A SUBSET OF NO RADIUS IS NOT A SUBSET, and the guard saying so had no case:
+// narrowed to "< 0" a radius of zero is accepted, and what comes back is a map
+// computed over a single pixel - a "noise floor" with no subset behind it at
+// all, reported in the same units and with the same confidence as a real one.
+// The radius travels with the figure precisely because the figure means nothing
+// without it.
+//
+// And the cell each figure is written into, which the same sweep left open: the
+// index is row * width + column, and with a MINUS there every value lands in
+// the wrong cell - mirrored about the row's start - while the map keeps its
+// shape, its count of established points and its whole summary. The case above
+// reads one pixel at the centre of a symmetric pattern, where a mirrored index
+// happens to find an equal value; this one puts the figure somewhere the
+// mirror does not.
+void a_subset_of_no_radius_is_refused_and_every_figure_lands_where_it_belongs() {
+    const patternfab::Pattern pattern = makeSpecklePattern();
+    const patternfab::SensorNoiseProfile noise = constantNoise(0.01);
+
+    for (const int radius : {0, -4}) {
+        bool threw = false;
+        try {
+            patternfab::computeNoiseFloorMap(pattern, noise, radius);
+        } catch (const std::runtime_error &) {
+            threw = true;
+        }
+        check(threw, "a subset radius of " + std::to_string(radius)
+                         + " was accepted as a subset");
+    }
+
+    // ⚑ An ASYMMETRIC pattern, so that a mirrored index cannot land on an equal
+    // value: a dot away from the centre line, and a column checked either side
+    // of it.
+    patternfab::Pattern offCentre;
+    offCentre.params.specimenWidthMm = 10.0;
+    offCentre.params.specimenHeightMm = 10.0;
+    offCentre.params.imagingResolutionPxPerMm = 20.0;
+    patternfab::Primitive dot;
+    dot.shape = patternfab::PrimitiveShape::Polygon;
+    dot.verticesMm = {{1.0, 4.5}, {2.0, 4.5}, {2.0, 5.5}, {1.0, 5.5}};
+    offCentre.primitives.push_back(dot);
+
+    const int radius = 16;
+    const auto map = patternfab::computeNoiseFloorMap(offCentre, noise, radius);
+    const auto sigmaAt = [&](int x, int y) {
+        return map.sigmaPx[static_cast<std::size_t>(y) * map.widthPx + x];
+    };
+
+    // The dot spans px 20 to 40, so a subset centred at x = 30 encloses it and
+    // one centred at x = 170 sees nothing at all.
+    check(!std::isnan(sigmaAt(30, 100)),
+          "no floor was established over the dot, so this case asks nothing");
+    check(std::isnan(sigmaAt(170, 100)),
+          "a floor was established over blank ground at x = 170, which means "
+          "the figures are not landing in the cells they were computed for");
+}
+
 int main() {
     testGradientLocation();
     testNoiseReducesConfidence();
@@ -728,6 +817,7 @@ int main() {
     each_bad_parameter_is_refused_for_being_what_it_is();
     a_specimen_of_two_pixels_is_the_smallest_there_is();
     the_floor_of_an_enclosed_dot_is_the_one_its_edges_give();
+    a_subset_of_no_radius_is_refused_and_every_figure_lands_where_it_belongs();
     testNoiseFloorIsInPixelsAndImprovesWithContrast();
     testNoiseFloorTakesTheWorseAxis();
     testALargerSubsetLowersTheFloor();
