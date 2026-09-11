@@ -112,6 +112,86 @@ void testInvalidParameters() {
     check(threw, "zero imagingResolutionPxPerMm throws");
 }
 
+// Returns the message, or an empty string if nothing was thrown.
+std::string refusalFor(const patternfab::Pattern &pattern) {
+    patternfab::SensorNoiseProfile noise;
+    try {
+        patternfab::computeUncertaintyMap(pattern, noise);
+    } catch (const std::runtime_error &error) {
+        return error.what();
+    }
+    return std::string();
+}
+
+// ⚑ WHICH REFUSAL A READER GETS IS THE POINT, and the case above cannot see it:
+// it asks only whether SOMETHING was thrown. A specimen of zero width slips
+// past the parameter guard when its test is narrowed to "< 0", renders zero
+// pixels wide, and is caught by the NEXT guard instead - which tells the user
+// the imaging resolution is too low for the specimen, about a specimen that has
+// no width at all. They would go and change a number that was never the
+// problem.
+//
+// Each parameter on its own, at zero and below, because the guard is three
+// conditions joined by OR and joining them with AND lets any single bad value
+// through while all three cases still "throw".
+void each_bad_parameter_is_refused_for_being_what_it_is() {
+    const double zero = 0.0;
+    const double negative = -1.0;
+
+    for (const double bad : {zero, negative}) {
+        patternfab::Pattern width = makeSingleCirclePattern();
+        width.params.specimenWidthMm = bad;
+        const std::string widthSaid = refusalFor(width);
+        check(widthSaid.find("must be positive") != std::string::npos,
+              "a specimen " + std::to_string(bad) + " mm wide was refused for "
+              "the wrong reason: " + widthSaid);
+
+        patternfab::Pattern height = makeSingleCirclePattern();
+        height.params.specimenHeightMm = bad;
+        const std::string heightSaid = refusalFor(height);
+        check(heightSaid.find("must be positive") != std::string::npos,
+              "a specimen " + std::to_string(bad) + " mm tall was refused for "
+              "the wrong reason: " + heightSaid);
+
+        patternfab::Pattern resolution = makeSingleCirclePattern();
+        resolution.params.imagingResolutionPxPerMm = bad;
+        const std::string resolutionSaid = refusalFor(resolution);
+        check(resolutionSaid.find("must be positive") != std::string::npos,
+              "an imaging resolution of " + std::to_string(bad) + " was refused "
+              "for the wrong reason: " + resolutionSaid);
+    }
+}
+
+// The other guard, and its boundary. A specimen that renders two pixels across
+// is the smallest one a difference can be taken over at all, and it is measured
+// rather than refused; one pixel is not, and says so in its own words.
+void a_specimen_of_two_pixels_is_the_smallest_there_is() {
+    patternfab::Pattern twoPx = makeSingleCirclePattern();
+    twoPx.params.imagingResolutionPxPerMm = 0.2;   // 10 mm -> exactly 2 px
+    check(refusalFor(twoPx).empty(),
+          "a specimen rendering two pixels across was refused: " + refusalFor(twoPx));
+
+    // ⚑ One axis at a time, because the guard is two conditions joined by OR
+    // and joining them with AND refuses only a specimen too small in BOTH.
+    patternfab::Pattern narrow = makeSingleCirclePattern();
+    narrow.params.specimenWidthMm = 0.5;
+    narrow.params.specimenHeightMm = 100.0;
+    narrow.params.imagingResolutionPxPerMm = 2.0;   // 1 px by 200 px
+    const std::string narrowSaid = refusalFor(narrow);
+    check(narrowSaid.find("too low") != std::string::npos,
+          "a specimen one pixel wide was not refused for being too small: "
+              + narrowSaid);
+
+    patternfab::Pattern flat = makeSingleCirclePattern();
+    flat.params.specimenWidthMm = 100.0;
+    flat.params.specimenHeightMm = 0.5;
+    flat.params.imagingResolutionPxPerMm = 2.0;     // 200 px by 1 px
+    const std::string flatSaid = refusalFor(flat);
+    check(flatSaid.find("too low") != std::string::npos,
+          "a specimen one pixel tall was not refused for being too small: "
+              + flatSaid);
+}
+
 // --- the displacement noise floor, in pixels -------------------------------
 //
 // WHY THIS EXISTS. The confidence map above is sound physics reported as a
@@ -580,6 +660,8 @@ int main() {
     testNoiseReducesConfidence();
     testLowConfidenceFraction();
     testInvalidParameters();
+    each_bad_parameter_is_refused_for_being_what_it_is();
+    a_specimen_of_two_pixels_is_the_smallest_there_is();
     testNoiseFloorIsInPixelsAndImprovesWithContrast();
     testNoiseFloorTakesTheWorseAxis();
     testALargerSubsetLowersTheFloor();
